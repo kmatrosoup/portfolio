@@ -1,0 +1,243 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="source">
+      <UniqueIdentifier>{83fa1987-3266-4b9a-8222-11938c1986e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\VEC2">
+      <UniqueIdentifier>{9a14012a-796e-419c-9bb7-075ee8d82c69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Input">
+      <UniqueIdentifier>{e35007f0-c436-44fd-b3f5-bc2a7bdb83cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Game">
+      <UniqueIdentifier>{31a602b7-06f5-4d67-87bd-75e8d20e8301}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Book">
+      <UniqueIdentifier>{1f0b5e0e-0b41-4966-b058-d082a8f1bdc4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Book\ExplosionBook">
+      <UniqueIdentifier>{4db70c31-aeab-4c74-a7cc-0f93c349b6b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\BookMgr">
+      <UniqueIdentifier>{19dbea98-67c3-40b7-83b7-9b7558719658}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Player">
+      <UniqueIdentifier>{ef0205f4-38c0-4a2a-9c50-71ef1cc61d7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Enemy">
+      <UniqueIdentifier>{add67922-ee91-4f9a-a8fc-5f176307500f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\EnemyMgr">
+      <UniqueIdentifier>{97c0abf4-da19-4e55-8fd3-aaf846e0afc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Enemy\SkullEnemy">
+      <UniqueIdentifier>{450cce17-cd59-4872-8417-6183e718fbee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Enemy\SlimeEnemy">
+      <UniqueIdentifier>{7aeacccc-aeb9-439f-824d-cd486c49d287}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\AtkObjMgr">
+      <UniqueIdentifier>{a1deede3-691c-47ad-b986-a7cfa34c9d8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\AtkObj">
+      <UniqueIdentifier>{4b2f1c0e-0c61-464a-b6de-6765b4ef1810}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\AtkObj\ExplosionAtkObj">
+      <UniqueIdentifier>{885eabbf-ba04-4fa1-8757-b4615e1b1e46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Easing">
+      <UniqueIdentifier>{2fbcb107-424d-4ad1-95f5-502ce75d0756}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Book\FireballBook">
+      <UniqueIdentifier>{377e4017-fbbc-481f-bf82-9850a1328691}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\AtkObj\FireballAtkObj">
+      <UniqueIdentifier>{21686b15-1a0a-47ea-8684-c961b56cf379}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Enemy\BatEnemy">
+      <UniqueIdentifier>{d948a430-8838-4af2-9690-1e96f4a6cf8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Score">
+      <UniqueIdentifier>{fa5f4943-739d-49cb-be90-0b3636eead0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Effect">
+      <UniqueIdentifier>{f86739fb-d851-494b-8928-89f4e0cf3a26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\EffectMgr">
+      <UniqueIdentifier>{f8967ca7-6f2f-4c67-b2fc-50034783772c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Effect\FootEffect">
+      <UniqueIdentifier>{79ef4e22-195c-4293-9442-787cb71f04f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Effect\SpawnEffect">
+      <UniqueIdentifier>{c21c361e-9e1e-4587-a91c-b6726adc433e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Effect\ParticleEffect">
+      <UniqueIdentifier>{999b99c9-a16a-4ac8-956d-debf64028b74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\InputMgr">
+      <UniqueIdentifier>{c43394c6-9265-45ce-8a8c-dd3bb7c862fb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Game.h">
+      <Filter>source\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>source\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="System.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="VEC2.h">
+      <Filter>source\VEC2</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseBook.h">
+      <Filter>source\Book</Filter>
+    </ClInclude>
+    <ClInclude Include="ExplosionBook.h">
+      <Filter>source\Book\ExplosionBook</Filter>
+    </ClInclude>
+    <ClInclude Include="BookMgr.h">
+      <Filter>source\BookMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>source\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyMgr.h">
+      <Filter>source\EnemyMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseEnemy.h">
+      <Filter>source\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="SkullEnemy.h">
+      <Filter>source\Enemy\SkullEnemy</Filter>
+    </ClInclude>
+    <ClInclude Include="SlimeEnemy.h">
+      <Filter>source\Enemy\SlimeEnemy</Filter>
+    </ClInclude>
+    <ClInclude Include="AtkObjMgr.h">
+      <Filter>source\AtkObjMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseAtkObj.h">
+      <Filter>source\AtkObj</Filter>
+    </ClInclude>
+    <ClInclude Include="ExplosionAtkObj.h">
+      <Filter>source\AtkObj\ExplosionAtkObj</Filter>
+    </ClInclude>
+    <ClInclude Include="Easing.h">
+      <Filter>source\Easing</Filter>
+    </ClInclude>
+    <ClInclude Include="FireballBook.h">
+      <Filter>source\Book\FireballBook</Filter>
+    </ClInclude>
+    <ClInclude Include="FireballAtkObj.h">
+      <Filter>source\AtkObj\FireballAtkObj</Filter>
+    </ClInclude>
+    <ClInclude Include="BatEnemy.h">
+      <Filter>source\Enemy\BatEnemy</Filter>
+    </ClInclude>
+    <ClInclude Include="Score.h">
+      <Filter>source\Score</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectMgr.h">
+      <Filter>source\EffectMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseEffect.h">
+      <Filter>source\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="FootEffect.h">
+      <Filter>source\Effect\FootEffect</Filter>
+    </ClInclude>
+    <ClInclude Include="SpawnEffect.h">
+      <Filter>source\Effect\SpawnEffect</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleEffect.h">
+      <Filter>source\Effect\ParticleEffect</Filter>
+    </ClInclude>
+    <ClInclude Include="InputMgr.h">
+      <Filter>source\InputMgr</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Game.cpp">
+      <Filter>source\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>source\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="VEC2.cpp">
+      <Filter>source\VEC2</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseBook.cpp">
+      <Filter>source\Book</Filter>
+    </ClCompile>
+    <ClCompile Include="ExplosionBook.cpp">
+      <Filter>source\Book\ExplosionBook</Filter>
+    </ClCompile>
+    <ClCompile Include="BookMgr.cpp">
+      <Filter>source\BookMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>source\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyMgr.cpp">
+      <Filter>source\EnemyMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseEnemy.cpp">
+      <Filter>source\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="SkullEnemy.cpp">
+      <Filter>source\Enemy\SkullEnemy</Filter>
+    </ClCompile>
+    <ClCompile Include="SlimeEnemy.cpp">
+      <Filter>source\Enemy\SlimeEnemy</Filter>
+    </ClCompile>
+    <ClCompile Include="AtkObjMgr.cpp">
+      <Filter>source\AtkObjMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseAtkObj.cpp">
+      <Filter>source\AtkObj</Filter>
+    </ClCompile>
+    <ClCompile Include="ExplosionAtkObj.cpp">
+      <Filter>source\AtkObj\ExplosionAtkObj</Filter>
+    </ClCompile>
+    <ClCompile Include="Easing.cpp">
+      <Filter>source\Easing</Filter>
+    </ClCompile>
+    <ClCompile Include="FireballBook.cpp">
+      <Filter>source\Book\FireballBook</Filter>
+    </ClCompile>
+    <ClCompile Include="FireballAtkObj.cpp">
+      <Filter>source\AtkObj\FireballAtkObj</Filter>
+    </ClCompile>
+    <ClCompile Include="BatEnemy.cpp">
+      <Filter>source\Enemy\BatEnemy</Filter>
+    </ClCompile>
+    <ClCompile Include="Score.cpp">
+      <Filter>source\Score</Filter>
+    </ClCompile>
+    <ClCompile Include="EffectMgr.cpp">
+      <Filter>source\EffectMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseEffect.cpp">
+      <Filter>source\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="FootEffect.cpp">
+      <Filter>source\Effect\FootEffect</Filter>
+    </ClCompile>
+    <ClCompile Include="SpawnEffect.cpp">
+      <Filter>source\Effect\SpawnEffect</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleEffect.cpp">
+      <Filter>source\Effect\ParticleEffect</Filter>
+    </ClCompile>
+    <ClCompile Include="InputMgr.cpp">
+      <Filter>source\InputMgr</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

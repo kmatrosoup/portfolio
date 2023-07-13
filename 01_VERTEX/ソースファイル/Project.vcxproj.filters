@@ -1,0 +1,359 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Easing">
+      <UniqueIdentifier>{ba464170-6d21-47ab-819f-a0fee274bb2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Input">
+      <UniqueIdentifier>{b2942512-b40e-4f23-8b4f-30c28cd595f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VEC2">
+      <UniqueIdentifier>{7223cfa8-6a6d-4845-9e70-a07432287b98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Atkobj">
+      <UniqueIdentifier>{e4a61924-d63c-4b57-a4f5-b493cdb03ea0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Atkobj\NormalBullet">
+      <UniqueIdentifier>{80f45c17-c161-4ecb-b124-92204ddbfe3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Atkobj\Missile">
+      <UniqueIdentifier>{00779551-e704-43b8-b9be-11ac8f6b65f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Atkobj\DeathBullet">
+      <UniqueIdentifier>{a52bcac8-40a5-44e3-8e61-817bd11daad1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Atkobj\Blast">
+      <UniqueIdentifier>{9697dd2b-b5d4-4aa1-8328-485a66c075cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Atkobj\MineTrap">
+      <UniqueIdentifier>{975762bc-bb1f-448f-a2bc-410e304be4d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Atkobj\ElectricTrap">
+      <UniqueIdentifier>{d6037802-545b-4592-88d8-25fb4baa7719}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Atkobj\Wind">
+      <UniqueIdentifier>{a7129c84-069f-4fe7-8762-4356e16d3e9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Atkobj\Orb">
+      <UniqueIdentifier>{6f54c1cf-edc6-4d20-a6cc-ff2e7e93a71c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Atkobj\ChargeBullet">
+      <UniqueIdentifier>{9b1b13d6-febf-41b5-9b98-2ae5e1b18501}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AtkobjMgr">
+      <UniqueIdentifier>{023d3760-ddf5-4fb3-9b6f-3ae02bc39dec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="BgmData">
+      <UniqueIdentifier>{e0a51ea6-7c78-45ab-bf06-d23b1913f7d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CommonData">
+      <UniqueIdentifier>{c27fc98d-1b5c-40cd-bcc0-84014bc7388e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effect">
+      <UniqueIdentifier>{73065850-cd2c-493e-80ba-06d5a072cb5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effect\Death">
+      <UniqueIdentifier>{2cc3ef11-2fc8-45a6-9786-f4fe4e469e99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effect\Line">
+      <UniqueIdentifier>{829daca3-f2da-43fb-bf06-c8df23bacfff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effect\Circle">
+      <UniqueIdentifier>{ff7ae5d9-d579-4626-a697-a4de08d254a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effect\MuzzleFlash">
+      <UniqueIdentifier>{d99e6b3d-e119-4947-b5f1-0d8a19836ab6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effect\Aura">
+      <UniqueIdentifier>{37013191-53af-4d45-b0aa-f3a4dc2bca28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EffectMgr">
+      <UniqueIdentifier>{28c7fb8d-c209-43ca-bd19-d0e5593decd6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Field">
+      <UniqueIdentifier>{e1e91564-ab50-4c2e-b9ae-4ef541db403e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="InputMgr">
+      <UniqueIdentifier>{36aa831f-c68c-48ee-88ab-4e37ec676556}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Player">
+      <UniqueIdentifier>{7d45ef61-b5a9-4416-b39c-fdd3ea3f8a3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{9d9643fd-7d52-41fb-99d1-ce6fc46cfd71}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\Game">
+      <UniqueIdentifier>{aaf8fd88-7901-4321-9c45-ea7892399c58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\Title">
+      <UniqueIdentifier>{f0bd5dc0-1a50-4fb4-9915-122a788a0be5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\Select">
+      <UniqueIdentifier>{dda190c4-816d-40c8-aa65-5e6366351885}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\Config">
+      <UniqueIdentifier>{a4cdd413-d812-4262-af67-bdec6a37d815}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\Result">
+      <UniqueIdentifier>{ac04e68b-d0e8-4372-a111-1e87023df70b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\Preview">
+      <UniqueIdentifier>{44cdeef4-3788-41ad-8f66-af3448d5038d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SceneMgr">
+      <UniqueIdentifier>{5fe4fac8-2bca-41c7-9195-7029fa1b61bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SoundData">
+      <UniqueIdentifier>{a2a1275d-342a-4aff-b711-430f01bc4a37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Atkobj\Laser">
+      <UniqueIdentifier>{04aaa44d-86f5-463e-a157-c753de0e52b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effect\Dead">
+      <UniqueIdentifier>{4387ce46-f8be-43b1-a376-5f610ff9145b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effect\Confetti">
+      <UniqueIdentifier>{35d51af1-7de7-4089-98d8-383a99fc35de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effect\NormalBullet_Trajectory">
+      <UniqueIdentifier>{67de4580-34d8-4fe3-b02a-7a4deeeae652}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Game.h">
+      <Filter>Scene\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="VEC2.h">
+      <Filter>VEC2</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneMgr.h">
+      <Filter>SceneMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="Title.h">
+      <Filter>Scene\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Select.h">
+      <Filter>Scene\Select</Filter>
+    </ClInclude>
+    <ClInclude Include="Easing.h">
+      <Filter>Easing</Filter>
+    </ClInclude>
+    <ClInclude Include="CommonData.h">
+      <Filter>CommonData</Filter>
+    </ClInclude>
+    <ClInclude Include="InputMgr.h">
+      <Filter>InputMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundData.h">
+      <Filter>SoundData</Filter>
+    </ClInclude>
+    <ClInclude Include="Field.h">
+      <Filter>Field</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>Scene\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="AtkobjMgr.h">
+      <Filter>AtkobjMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseAtkobj.h">
+      <Filter>Atkobj</Filter>
+    </ClInclude>
+    <ClInclude Include="NormalBullet.h">
+      <Filter>Atkobj\NormalBullet</Filter>
+    </ClInclude>
+    <ClInclude Include="DeathBullet.h">
+      <Filter>Atkobj\DeathBullet</Filter>
+    </ClInclude>
+    <ClInclude Include="Missile.h">
+      <Filter>Atkobj\Missile</Filter>
+    </ClInclude>
+    <ClInclude Include="Blast.h">
+      <Filter>Atkobj\Blast</Filter>
+    </ClInclude>
+    <ClInclude Include="Result.h">
+      <Filter>Scene\Result</Filter>
+    </ClInclude>
+    <ClInclude Include="MineTrap.h">
+      <Filter>Atkobj\MineTrap</Filter>
+    </ClInclude>
+    <ClInclude Include="ElectricTrap.h">
+      <Filter>Atkobj\ElectricTrap</Filter>
+    </ClInclude>
+    <ClInclude Include="Wind.h">
+      <Filter>Atkobj\Wind</Filter>
+    </ClInclude>
+    <ClInclude Include="Orb.h">
+      <Filter>Atkobj\Orb</Filter>
+    </ClInclude>
+    <ClInclude Include="ChargeBullet.h">
+      <Filter>Atkobj\ChargeBullet</Filter>
+    </ClInclude>
+    <ClInclude Include="Preview.h">
+      <Filter>Scene\Preview</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectMgr.h">
+      <Filter>EffectMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseEffect.h">
+      <Filter>Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="Line.h">
+      <Filter>Effect\Line</Filter>
+    </ClInclude>
+    <ClInclude Include="Death.h">
+      <Filter>Effect\Death</Filter>
+    </ClInclude>
+    <ClInclude Include="Circle.h">
+      <Filter>Effect\Circle</Filter>
+    </ClInclude>
+    <ClInclude Include="MuzzleFlash.h">
+      <Filter>Effect\MuzzleFlash</Filter>
+    </ClInclude>
+    <ClInclude Include="Aura.h">
+      <Filter>Effect\Aura</Filter>
+    </ClInclude>
+    <ClInclude Include="BgmData.h">
+      <Filter>BgmData</Filter>
+    </ClInclude>
+    <ClInclude Include="System.h" />
+    <ClInclude Include="Laser.h">
+      <Filter>Atkobj\Laser</Filter>
+    </ClInclude>
+    <ClInclude Include="Dead.h">
+      <Filter>Effect\Dead</Filter>
+    </ClInclude>
+    <ClInclude Include="Confetti.h">
+      <Filter>Effect\Confetti</Filter>
+    </ClInclude>
+    <ClInclude Include="NormalBullet_Trajectory.h">
+      <Filter>Effect\NormalBullet_Trajectory</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Game.cpp">
+      <Filter>Scene\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
+    <ClCompile Include="VEC2.cpp">
+      <Filter>VEC2</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneMgr.cpp">
+      <Filter>SceneMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="Title.cpp">
+      <Filter>Scene\Title</Filter>
+    </ClCompile>
+    <ClCompile Include="Select.cpp">
+      <Filter>Scene\Select</Filter>
+    </ClCompile>
+    <ClCompile Include="Easing.cpp">
+      <Filter>Easing</Filter>
+    </ClCompile>
+    <ClCompile Include="InputMgr.cpp">
+      <Filter>InputMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="CommonData.cpp">
+      <Filter>CommonData</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundData.cpp">
+      <Filter>SoundData</Filter>
+    </ClCompile>
+    <ClCompile Include="Field.cpp">
+      <Filter>Field</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Config.cpp">
+      <Filter>Scene\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="AtkobjMgr.cpp">
+      <Filter>AtkobjMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="NormalBullet.cpp">
+      <Filter>Atkobj\NormalBullet</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseAtkobj.cpp">
+      <Filter>Atkobj</Filter>
+    </ClCompile>
+    <ClCompile Include="DeathBullet.cpp">
+      <Filter>Atkobj\DeathBullet</Filter>
+    </ClCompile>
+    <ClCompile Include="Missile.cpp">
+      <Filter>Atkobj\Missile</Filter>
+    </ClCompile>
+    <ClCompile Include="Blast.cpp">
+      <Filter>Atkobj\Blast</Filter>
+    </ClCompile>
+    <ClCompile Include="Result.cpp">
+      <Filter>Scene\Result</Filter>
+    </ClCompile>
+    <ClCompile Include="MineTrap.cpp">
+      <Filter>Atkobj\MineTrap</Filter>
+    </ClCompile>
+    <ClCompile Include="ElectricTrap.cpp">
+      <Filter>Atkobj\ElectricTrap</Filter>
+    </ClCompile>
+    <ClCompile Include="Wind.cpp">
+      <Filter>Atkobj\Wind</Filter>
+    </ClCompile>
+    <ClCompile Include="Orb.cpp">
+      <Filter>Atkobj\Orb</Filter>
+    </ClCompile>
+    <ClCompile Include="ChargeBullet.cpp">
+      <Filter>Atkobj\ChargeBullet</Filter>
+    </ClCompile>
+    <ClCompile Include="Preview.cpp">
+      <Filter>Scene\Preview</Filter>
+    </ClCompile>
+    <ClCompile Include="EffectMgr.cpp">
+      <Filter>EffectMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseEffect.cpp">
+      <Filter>Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="Line.cpp">
+      <Filter>Effect\Line</Filter>
+    </ClCompile>
+    <ClCompile Include="Death.cpp">
+      <Filter>Effect\Death</Filter>
+    </ClCompile>
+    <ClCompile Include="Circle.cpp">
+      <Filter>Effect\Circle</Filter>
+    </ClCompile>
+    <ClCompile Include="MuzzleFlash.cpp">
+      <Filter>Effect\MuzzleFlash</Filter>
+    </ClCompile>
+    <ClCompile Include="Aura.cpp">
+      <Filter>Effect\Aura</Filter>
+    </ClCompile>
+    <ClCompile Include="BgmData.cpp">
+      <Filter>BgmData</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Laser.cpp">
+      <Filter>Atkobj\Laser</Filter>
+    </ClCompile>
+    <ClCompile Include="Dead.cpp">
+      <Filter>Effect\Dead</Filter>
+    </ClCompile>
+    <ClCompile Include="Confetti.cpp">
+      <Filter>Effect\Confetti</Filter>
+    </ClCompile>
+    <ClCompile Include="NormalBullet_Trajectory.cpp">
+      <Filter>Effect\NormalBullet_Trajectory</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
