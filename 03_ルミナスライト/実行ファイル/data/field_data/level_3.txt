@@ -1,0 +1,16 @@
+7
+8
+#######
+#t-...#
+###m.m#
+##....#
+#..l#.#
+#.w.#-#
+##..#t#
+#######
+left,white
+right
+left
+up
+right
+down,white

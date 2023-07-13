@@ -1,0 +1,12 @@
+data\sound\bgm.mp3
+data\sound\button_cursor_se.mp3
+data\sound\button_click_se.mp3
+data\sound\button_error_se.mp3
+data\sound\lightup_se.mp3
+data\sound\tile_pick_se.mp3
+data\sound\tile_move_se.mp3
+data\sound\tile_put_se.mp3
+data\sound\success_se.mp3
+data\sound\typing_se_1.mp3
+data\sound\typing_se_2.mp3
+data\sound\typing_se_3.mp3
