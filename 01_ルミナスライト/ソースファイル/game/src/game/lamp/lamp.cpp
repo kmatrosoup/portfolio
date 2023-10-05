@@ -1,17 +1,13 @@
 #include "lamp.h"
-#include "../glow_screen/glow_screen.h"
 
 CLamp::CLamp(IGameObject* parent)
 	: IGameObject(parent, "Lamp")
-	, m_pGlowScreen(nullptr)
 	, m_AngleVelocity(0.0f)
 {
 }
 
 void CLamp::Initialize(float pos_x, float anchor_y, bool lit_flag)
 {
-	m_pGlowScreen = (CGlowScreen*)aqua::FindGameObject("GlowScreen");
-
 	m_PositionX = pos_x;
 
 	m_BaseSprite.Create("data\\lamp.png");
@@ -55,17 +51,16 @@ void CLamp::Update()
 	m_BaseSprite.position.y = -m_BaseSprite.anchor.y;
 	m_LitSprite.position = m_BaseSprite.position;
 	m_LitSprite.rotation = m_BaseSprite.rotation;
-
-	m_pGlowScreen->Begin();
-	{
-		m_LitSprite.Draw();
-	}
-	m_pGlowScreen->End();
 }
 
 void CLamp::Draw()
 {
 	m_BaseSprite.Draw();
+}
+
+void CLamp::Draw_Lit()
+{
+	m_LitSprite.Draw();
 }
 
 void CLamp::Finalize()

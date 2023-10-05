@@ -1,6 +1,5 @@
 #include "field.h"
 #include "../sound_manager/sound_manager.h"
-#include "../glow_screen/glow_screen.h"
 #include <fstream>
 #include <algorithm>
 
@@ -13,8 +12,6 @@
 #include "../tile/way_tile/way_tile.h"
 #include "../tile/crystal_tile/crystal_tile.h"
 
-const float CField::m_laser_trail_time = 0.6f;
-const int CField::m_laser_trail_frame_num = 12;
 const float CField::m_edge_space = 200.0f;
 const int CField::m_tile_menu_num = 13;
 
@@ -70,12 +67,16 @@ const std::vector<std::pair<TILE_ID, COLOR_ID>> CField::m_tile_menu =
 CField::CField(IGameObject* parent)
 	: IGameObject(parent, "Field")
 	, m_pSoundManager(nullptr)
-	, m_pGlowScreen(nullptr)
-	, m_FieldWidth(0)
-	, m_FieldHeight(0)
-	, m_TileSize(0.0f)
+	, m_TileNumX(0)
+	, m_TileNumY(0)
 	, m_SelectedTileMenu(0)
+	, m_DispTileSize(0.0f)
 	, m_SelectedDirection(DIRECTION_ID::RIGHT)
+	, m_CursorLocate()
+	, m_CursorLocate_prev()
+	, m_LoadFilePath("")
+	, m_pTiles()
+	, m_LaserChain()
 {
 }
 
@@ -86,19 +87,14 @@ void CField::Initialize()
 
 	// ゲームオブジェクトの取得
 	m_pSoundManager = (CSoundManager*)aqua::FindGameObject("SoundManager");
-	m_pGlowScreen = (CGlowScreen*)aqua::FindGameObject("GlowScreen");
 
 	// リソースの読み込み
-	m_LaserTrailSprite.Create("data\\laser_trail.png");
-	m_LaserTrailSprite.anchor.x = m_LaserTrailSprite.GetTextureWidth() / 2.0f / (int)COLOR_ID::MAX;
-	m_LaserTrailSprite.anchor.y = m_LaserTrailSprite.GetTextureHeight() / 2.0f / m_laser_trail_frame_num;
+	m_LaserTrailSprite.Create("data\\laser_trail.ass");
+	m_LaserTrailSprite.anchor.x = m_LaserTrailSprite.GetFrameWidth() / 2.0f;
+	m_LaserTrailSprite.anchor.y = m_LaserTrailSprite.GetFrameHeight() / 2.0f;
 	m_LaserTrailSprite.blend_mode = aqua::ALPHABLEND::ADD;
 
 	m_OutAreaTileSprite.Create("data\\tile_out_area.png");
-
-	m_GlowMaskSurface.Create((int)aqua::GetWindowWidth(), (int)aqua::GetWindowHeight(), true);
-	m_GlowMaskSprite.Create(m_GlowMaskSurface);
-	m_GlowMaskSprite.color = 0xff000000;
 
 	m_TileMenuSprite.Create("data\\tile_menu.png");
 	m_TileMenuSprite.anchor.x = m_TileMenuSprite.GetTextureWidth() / 2.0f / m_tile_menu_num;
@@ -110,255 +106,47 @@ void CField::Initialize()
 	// 初期化処理
 	m_CursorHorizontalBox.Setup(aqua::CVector2::ZERO, (float)aqua::GetWindowWidth(), 0.0f, 0xff202020, true, 0.0f, aqua::ALPHABLEND::ADD);
 	m_CursorVerticalBox.Setup(aqua::CVector2::ZERO, 0.0f, (float)aqua::GetWindowHeight(), 0xff202020, true, 0.0f, aqua::ALPHABLEND::ADD);
-	m_FieldWidth = 0;
-	m_FieldHeight = 0;
-	m_LaserTrailTimer.Setup(m_laser_trail_time);
+	m_TileNumX = 0;
+	m_TileNumY = 0;
 	ResizeField(8, 6);
 }
 
 void CField::Update()
 {
-	// 外部タイルデータの読み込み
-	while (DxLib::GetDragFileNum() > 0)
-	{
-		char buf[1024];
-		DxLib::GetDragFilePath(buf);
-		LoadMapData(buf);
-	}
-
-	// フィールドサイズの変更
-	{
-		int next_w = max(m_FieldWidth + aqua::keyboard::Trigger(aqua::keyboard::KEY_ID::RIGHT) - aqua::keyboard::Trigger(aqua::keyboard::KEY_ID::LEFT), 1);
-		int next_h = max(m_FieldHeight + aqua::keyboard::Trigger(aqua::keyboard::KEY_ID::DOWN) - aqua::keyboard::Trigger(aqua::keyboard::KEY_ID::UP), 1);
-
-		if (next_w != m_FieldWidth || next_h != m_FieldHeight)
-		{
-			ResizeField(next_w, next_h);
-			m_pSoundManager->Play(SOUND_ID::TILE_MOVE_SE);
-		}
-	}
-
-	// 設置タイルの更新
-	{
-		int mouse_wheel = std::clamp(aqua::mouse::GetWheel(), -1, 1);
-		if (!aqua::keyboard::Button(aqua::keyboard::KEY_ID::LSHIFT))
-		{
-			int next_selected_menu = m_SelectedTileMenu - mouse_wheel;
-			next_selected_menu = (next_selected_menu + m_tile_menu_num) % m_tile_menu_num;
-			if (next_selected_menu != m_SelectedTileMenu)
-			{
-				m_SelectedTileMenu = next_selected_menu;
-				m_pSoundManager->Play(SOUND_ID::BUTTON_CURSOR_SE);
-			}
-		}
-		else
-		{
-			DIRECTION_ID next_direction = (DIRECTION_ID)((int)m_SelectedDirection - mouse_wheel);
-			next_direction = (DIRECTION_ID)(((int)next_direction + (int)DIRECTION_ID::MAX) % (int)DIRECTION_ID::MAX);
-			if (next_direction != m_SelectedDirection)
-			{
-				m_SelectedDirection = next_direction;
-				m_pSoundManager->Play(SOUND_ID::BUTTON_CURSOR_SE);
-			}
-		}
-	}
-	m_TileMenuSprite.rect.left = (int)m_TileMenuSprite.GetTextureWidth() / m_tile_menu_num * m_SelectedTileMenu;
-	m_TileMenuSprite.rect.right = m_TileMenuSprite.rect.left + (int)m_TileMenuSprite.GetTextureWidth() / m_tile_menu_num;
-	switch (m_tile_menu[m_SelectedTileMenu].first)
-	{
-	case TILE_ID::WALL:
-		m_TileMenuSprite.rotation = 0.0f;
-		break;
-	case TILE_ID::GLASS:
-		m_TileMenuSprite.rotation = 0.0f;
-		break;
-	case TILE_ID::LASER:
-		m_TileMenuSprite.rotation = (float)(aqua::PI / 2.0f) * (int)m_SelectedDirection;
-		break;
-	case TILE_ID::TARGET:
-		m_TileMenuSprite.rotation = (float)(aqua::PI / 2.0f) * (int)m_SelectedDirection;
-		break;
-	case TILE_ID::MIRROR:
-		m_TileMenuSprite.rotation = (float)(aqua::PI / 2.0f) * (((int)m_SelectedDirection % 2) == 1);
-		break;
-	case TILE_ID::WAY:
-		m_TileMenuSprite.rotation = (float)(aqua::PI / 2.0f) * (int)m_SelectedDirection;
-		break;
-	case TILE_ID::CRYSTAL:
-		m_TileMenuSprite.rotation = 0.0f;
-		break;
-	}
-
-	// タイルのサイズ設定
-	m_TileSize = min(((float)aqua::GetWindowWidth() - m_edge_space) / m_FieldWidth, ((float)aqua::GetWindowHeight() - m_edge_space) / m_FieldHeight);
-	m_OutAreaTileSprite.scale.x = m_TileSize / (float)m_OutAreaTileSprite.GetTextureWidth();
-	m_OutAreaTileSprite.scale.y = m_TileSize / (float)m_OutAreaTileSprite.GetTextureHeight();
-
-	// タイルの設置処理
-	m_CursorLocate_prev = m_CursorLocate;
-	m_CursorLocate.x = (int)floorf((float)(aqua::mouse::GetCursorPos().x - ((int)aqua::GetWindowWidth() - m_TileSize * m_FieldWidth) / 2) / (float)m_TileSize);
-	m_CursorLocate.y = (int)floorf((float)(aqua::mouse::GetCursorPos().y - ((int)aqua::GetWindowHeight() - m_TileSize * m_FieldHeight) / 2) / (float)m_TileSize);
-
-	if (m_CursorLocate.x >= 0 &&
-		m_CursorLocate.y >= 0 &&
-		m_CursorLocate.x < m_FieldWidth &&
-		m_CursorLocate.y < m_FieldHeight)
-	{
-		if (aqua::mouse::Trigger(aqua::mouse::BUTTON_ID::LEFT) ||
-			m_CursorLocate_prev != m_CursorLocate && aqua::mouse::Button(aqua::mouse::BUTTON_ID::LEFT))
-		{
-			ReplaceTile(m_CursorLocate);
-			m_pSoundManager->Play(SOUND_ID::TILE_PICK_SE);
-		}
-		if (aqua::mouse::Trigger(aqua::mouse::BUTTON_ID::RIGHT) ||
-			m_CursorLocate_prev != m_CursorLocate && aqua::mouse::Button(aqua::mouse::BUTTON_ID::RIGHT))
-		{
-			DeleteTile(m_CursorLocate);
-			m_pSoundManager->Play(SOUND_ID::TILE_PUT_SE);
-		}
-	}
-
-	// タイルデータの保存
-	if (aqua::keyboard::Button(aqua::keyboard::KEY_ID::LCONTROL) && aqua::keyboard::Trigger(aqua::keyboard::KEY_ID::S))
-	{
-		char tmp_initial_dir[256] = "./";
-		char tmp_file[256] = "";
-
-		OPENFILENAME f_data = {};
-		f_data.lStructSize = sizeof(OPENFILENAME);
-		f_data.hwndOwner = aqua::GetWindowHandle();
-		f_data.nMaxFile = 256;
-		f_data.lpstrInitialDir = tmp_initial_dir;
-		f_data.lpstrFile = tmp_file;
-		f_data.lpstrDefExt = TEXT("*.txt");
-		f_data.lpstrFilter = TEXT("TXTファイル(*.txt)\0*.txt\0");;
-		f_data.lpstrTitle = TEXT("マップデータの保存");;
-		f_data.Flags = OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR | OFN_FILEMUSTEXIST;
-
-		if (GetSaveFileName(&f_data) == IDOK)
-			SaveMapData(tmp_file);
-	}
-
-	// タイルの更新
-	for (int y = 0; y < m_FieldHeight; ++y)
-		for (int x = 0; x < m_FieldWidth; ++x)
-			if (m_pTileLocate[y][x])
-			{
-				m_pTileLocate[y][x]->SetDispSize(m_TileSize);
-				m_pTileLocate[y][x]->SetPosition(aqua::CVector2((float)aqua::GetWindowWidth() - m_TileSize * m_FieldWidth, (float)aqua::GetWindowHeight() - m_TileSize * m_FieldHeight) * 0.5f + m_TileSize * aqua::CVector2((float)x, (float)y));
-				m_pTileLocate[y][x]->Update();
-			}
-
-	// 全てのターゲットの照射フラグを下げる
-	for (int y = 0; y < m_FieldHeight; ++y)
-		for (int x = 0; x < m_FieldWidth; ++x)
-			if (m_pTileLocate[y][x])
-				if (m_pTileLocate[y][x]->GetTileID() == TILE_ID::TARGET)
-					((CTargetTile*)m_pTileLocate[y][x])->SetLitFlag(false);
-
-	// レーザーの軌道処理、ターゲットへの照射処理
-	auto f_set_chain_laser = [&](auto fn, const std::pair<aqua::CPoint, SLaserData>& laser_data) -> void
-	{
-		aqua::CPoint next_point = laser_data.first;
-		switch (laser_data.second.direction)
-		{
-		case DIRECTION_ID::RIGHT:	++next_point.x;	break;
-		case DIRECTION_ID::DOWN:	++next_point.y;	break;
-		case DIRECTION_ID::LEFT:	--next_point.x;	break;
-		case DIRECTION_ID::UP:		--next_point.y;	break;
-		}
-
-		m_LaserChain.push_back({ next_point ,laser_data.second });
-
-		if (next_point.x < 0 || next_point.y < 0 || next_point.x >= m_FieldWidth || next_point.y >= m_FieldHeight)
-			return;
-
-		if (m_pTileLocate[next_point.y][next_point.x])
-		{
-			if (m_pTileLocate[next_point.y][next_point.x]->GetTileID() == TILE_ID::TARGET)
-				((CTargetTile*)m_pTileLocate[next_point.y][next_point.x])->IrradiateLaser(laser_data.second);
-
-			for (auto& i : m_pTileLocate[next_point.y][next_point.x]->GetConvertedLaser(laser_data.second))
-				fn(fn, { next_point, i });
-		}
-		else
-		{
-			fn(fn, { next_point, laser_data.second });
-		}
-	};
-	m_LaserChain.clear();
-	for (int y = 0; y < m_FieldHeight; ++y)
-		for (int x = 0; x < m_FieldWidth; ++x)
-			if (m_pTileLocate[y][x])
-				if (m_pTileLocate[y][x]->GetTileID() == TILE_ID::LASER)
-					for (const auto& i : ((CLaserTile*)m_pTileLocate[y][x])->GetGeneratedLaser())
-						f_set_chain_laser(f_set_chain_laser, { aqua::CPoint(x, y), i });
-
-	// タイマー処理
-	m_LaserTrailTimer.Update();
-	if (m_LaserTrailTimer.Finished())
-		m_LaserTrailTimer.Reset();
-
-	// カーソル更新
-	m_CursorHorizontalBox.height = m_TileSize;
-	m_CursorVerticalBox.width = m_TileSize;
-	m_CursorHorizontalBox.position.y = (aqua::GetWindowHeight() - m_TileSize * m_FieldHeight) / 2.0f + m_TileSize * m_CursorLocate.y;
-	m_CursorVerticalBox.position.x = (aqua::GetWindowWidth() - m_TileSize * m_FieldWidth) / 2.0f + m_TileSize * m_CursorLocate.x;
-
-	// グロー効果付与の描画
-	m_pGlowScreen->Begin();
-	{
-		// レーザー
-		m_LaserTrailSprite.scale.x = m_TileSize / (float)m_LaserTrailSprite.GetTextureWidth() * (int)COLOR_ID::MAX;
-		m_LaserTrailSprite.scale.y = m_TileSize / (float)(m_LaserTrailSprite.GetTextureHeight() / m_laser_trail_frame_num);
-		m_LaserTrailSprite.rect.top = (m_LaserTrailSprite.GetTextureHeight() / m_laser_trail_frame_num) * (int)(m_LaserTrailTimer.GetTime() * m_laser_trail_frame_num / m_laser_trail_time);
-		m_LaserTrailSprite.rect.bottom = m_LaserTrailSprite.rect.top + m_LaserTrailSprite.GetTextureHeight() / m_laser_trail_frame_num;
-		for (const auto& i : m_LaserChain)
-		{
-			m_LaserTrailSprite.rect.left = m_LaserTrailSprite.GetTextureWidth() / (int)COLOR_ID::MAX * (int)i.second.color;
-			m_LaserTrailSprite.rect.right = m_LaserTrailSprite.rect.left + m_LaserTrailSprite.GetTextureWidth() / (int)COLOR_ID::MAX;
-			m_LaserTrailSprite.position.x = ((int)aqua::GetWindowWidth() - m_TileSize * m_FieldWidth) / 2.0f + m_TileSize * i.first.x + m_TileSize / 2.0f - m_LaserTrailSprite.anchor.x;
-			m_LaserTrailSprite.position.y = ((int)aqua::GetWindowHeight() - m_TileSize * m_FieldHeight) / 2.0f + m_TileSize * i.first.y + m_TileSize / 2.0f - m_LaserTrailSprite.anchor.y;
-			m_LaserTrailSprite.rotation = aqua::DegToRad(90.0f * (int)i.second.direction);
-
-			if (i.first.x >= 0 && i.first.y >= 0 && i.first.x < m_FieldWidth && i.first.y < m_FieldHeight)
-				m_pTileLocate[i.first.y][i.first.x] ?
-				m_pTileLocate[i.first.y][i.first.x]->DrawLaserTrail(m_LaserTrailSprite, i.second) :
-				m_LaserTrailSprite.Draw();
-		}
-
-		// 照射中のターゲット
-		for (int y = 0; y < m_FieldHeight; ++y)
-			for (int x = 0; x < m_FieldWidth; ++x)
-				if (m_pTileLocate[y][x])
-					if (m_pTileLocate[y][x]->GetTileID() == TILE_ID::TARGET)
-						((CTargetTile*)m_pTileLocate[y][x])->DrawLit();
-	}
-	m_pGlowScreen->End();
+	Update_01_LoadDragFileMapData();
+	Update_02_ChangeTileMenu();
+	Update_03_ChangeTileNum();
+	Update_04_TileDrawSettings();
+	Update_05_PlaceAndEraseTile();
+	Update_06_SaveMapData();
+	Update_07_Tiles();
+	Update_08_CalcLaser();
+	Update_09_CursorDrawSettings();
+	Update_10_Animations();
 }
 
 void CField::Draw()
 {
-	// 範囲外のタイルの描画
+	// 範囲外のタイル
 	{
-		int sx = (int)floorf((m_TileSize * m_FieldWidth - (float)aqua::GetWindowWidth()) / 2.0f / m_TileSize);
-		int sy = (int)floorf((m_TileSize * m_FieldHeight - (float)aqua::GetWindowHeight()) / 2.0f / m_TileSize);
-		int ex = m_FieldWidth + (int)ceilf(((float)aqua::GetWindowWidth() - m_TileSize * m_FieldWidth) / 2.0f / m_TileSize);
-		int ey = m_FieldHeight + (int)ceilf(((float)aqua::GetWindowHeight() - m_TileSize * m_FieldHeight) / 2.0f / m_TileSize);
+		int sx = (int)floorf((m_DispTileSize * m_TileNumX - (float)aqua::GetWindowWidth()) / 2.0f / m_DispTileSize);
+		int sy = (int)floorf((m_DispTileSize * m_TileNumY - (float)aqua::GetWindowHeight()) / 2.0f / m_DispTileSize);
+		int ex = m_TileNumX + (int)ceilf(((float)aqua::GetWindowWidth() - m_DispTileSize * m_TileNumX) / 2.0f / m_DispTileSize);
+		int ey = m_TileNumY + (int)ceilf(((float)aqua::GetWindowHeight() - m_DispTileSize * m_TileNumY) / 2.0f / m_DispTileSize);
 		for (int x = sx; x < ex; ++x)
 			for (int y = sy; y < ey; ++y)
-				if (x < 0 || y < 0 || x >= m_FieldWidth || y >= m_FieldHeight)
+				if (x < 0 || y < 0 || x >= m_TileNumX || y >= m_TileNumY)
 				{
-					m_OutAreaTileSprite.position = aqua::CVector2((float)aqua::GetWindowWidth() - m_TileSize * m_FieldWidth, (float)aqua::GetWindowHeight() - m_TileSize * m_FieldHeight) * 0.5f + m_TileSize * aqua::CVector2((float)x, (float)y);
+					m_OutAreaTileSprite.position = aqua::CVector2((float)aqua::GetWindowWidth() - m_DispTileSize * m_TileNumX, (float)aqua::GetWindowHeight() - m_DispTileSize * m_TileNumY) * 0.5f + m_DispTileSize * aqua::CVector2((float)x, (float)y);
 					m_OutAreaTileSprite.Draw();
 				}
 	}
 
-	// 各タイルの描画
-	for (int y = 0; y < m_FieldHeight; ++y)
-		for (int x = 0; x < m_FieldWidth; ++x)
-			if (m_pTileLocate[y][x])
-				m_pTileLocate[y][x]->Draw();
+	// タイル
+	for (int y = 0; y < m_TileNumY; ++y)
+		for (int x = 0; x < m_TileNumX; ++x)
+			if (m_pTiles[y][x])
+				m_pTiles[y][x]->Draw();
 
 	// カーソル
 	m_CursorHorizontalBox.Draw();
@@ -381,81 +169,104 @@ void CField::Draw()
 	DrawFormatString(16, (int)aqua::GetWindowHeight() - 32, 0xffffffff, "[Ctrl]+[S] : セーブ");
 }
 
+void CField::Draw_Lit()
+{
+	// レーザー
+	m_LaserTrailSprite.scale.x = m_DispTileSize / (float)m_LaserTrailSprite.GetFrameWidth();
+	m_LaserTrailSprite.scale.y = m_DispTileSize / (float)m_LaserTrailSprite.GetFrameHeight();
+	for (const auto& i : m_LaserChain)
+	{
+		m_LaserTrailSprite.position.x = ((int)aqua::GetWindowWidth() - m_DispTileSize * m_TileNumX) / 2.0f + m_DispTileSize * i.first.x + m_DispTileSize / 2.0f - m_LaserTrailSprite.anchor.x;
+		m_LaserTrailSprite.position.y = ((int)aqua::GetWindowHeight() - m_DispTileSize * m_TileNumY) / 2.0f + m_DispTileSize * i.first.y + m_DispTileSize / 2.0f - m_LaserTrailSprite.anchor.y;
+		m_LaserTrailSprite.rotation = aqua::DegToRad(90.0f * (int)i.second.direction);
+		m_LaserTrailSprite.Change((int)i.second.color, false);
+
+		if (i.first.x >= 0 && i.first.y >= 0 && i.first.x < m_TileNumX && i.first.y < m_TileNumY && m_pTiles[i.first.y][i.first.x])
+			m_pTiles[i.first.y][i.first.x]->DrawLaserTrail(m_LaserTrailSprite, i.second);
+		else
+			m_LaserTrailSprite.Draw();
+	}
+
+	// タイル
+	for (int y = 0; y < m_TileNumY; ++y)
+		for (int x = 0; x < m_TileNumX; ++x)
+			if (m_pTiles[y][x])
+				(m_pTiles[y][x])->Draw_Lit();
+}
+
 void CField::Finalize()
 {
 	m_LaserTrailSprite.Delete();
 	m_OutAreaTileSprite.Delete();
-	m_GlowMaskSurface.Delete();
-	m_GlowMaskSprite.Delete();
 	m_TileMenuSprite.Delete();
 
-	for (auto& y : m_pTileLocate)
+	for (auto& y : m_pTiles)
 		for (auto& x : y)
 			if (x)
 			{
 				x->Finalize();
 				AQUA_SAFE_DELETE(x);
 			}
-	m_pTileLocate.clear();
+	m_pTiles.clear();
 }
 
 TILE_ID CField::GetTileID(const aqua::CPoint& locate) const
 {
-	if (locate.x < 0 || locate.y < 0 || locate.x >= m_FieldWidth || locate.y >= m_FieldHeight)
+	if (locate.x < 0 || locate.y < 0 || locate.x >= m_TileNumX || locate.y >= m_TileNumY)
 		return TILE_ID::MAX;
 
-	if (!m_pTileLocate[locate.y][locate.x])
+	if (!m_pTiles[locate.y][locate.x])
 		return TILE_ID::EMPTY;
 
-	return m_pTileLocate[locate.y][locate.x]->GetTileID();
+	return m_pTiles[locate.y][locate.x]->GetTileID();
 }
 
 float CField::GetTileSize() const
 {
-	return m_TileSize;
+	return m_DispTileSize;
 }
 
 void CField::ResizeField(int field_width, int field_height)
 {
 	// 範囲外のタイルを削除
-	for (int y = field_height; y < m_FieldHeight; ++y)
-		for (int x = field_width; x < m_FieldWidth; ++x)
-			if (m_pTileLocate[y][x])
+	for (int y = field_height; y < m_TileNumY; ++y)
+		for (int x = field_width; x < m_TileNumX; ++x)
+			if (m_pTiles[y][x])
 			{
-				m_pTileLocate[y][x]->Finalize();
-				m_ChildObjectList.erase(std::find(m_ChildObjectList.begin(), m_ChildObjectList.end(), m_pTileLocate[y][x]));
-				AQUA_SAFE_DELETE(m_pTileLocate[y][x]);
+				m_pTiles[y][x]->Finalize();
+				m_ChildObjectList.erase(std::find(m_ChildObjectList.begin(), m_ChildObjectList.end(), m_pTiles[y][x]));
+				AQUA_SAFE_DELETE(m_pTiles[y][x]);
 			}
 
 	// 変更後のフィールドを生成
 	std::vector<std::vector<ITile*>> new_tile_locate(field_height, std::vector<ITile*>(field_width, nullptr));
 	for (int y = 0; y < field_height; ++y)
 		for (int x = 0; x < field_width; ++x)
-			if (x < m_FieldWidth && y < m_FieldHeight)
-				new_tile_locate[y][x] = m_pTileLocate[y][x];
+			if (x < m_TileNumX && y < m_TileNumY)
+				new_tile_locate[y][x] = m_pTiles[y][x];
 
 	// 変更後のフィールドを適用
-	m_FieldWidth = field_width;
-	m_FieldHeight = field_height;
-	m_pTileLocate = new_tile_locate;
+	m_TileNumX = field_width;
+	m_TileNumY = field_height;
+	m_pTiles = new_tile_locate;
 }
 
 void CField::DeleteTile(const aqua::CPoint& locate)
 {
-	if (locate.x < 0 || locate.y < 0 || locate.x >= m_FieldWidth || locate.y >= m_FieldHeight)
+	if (locate.x < 0 || locate.y < 0 || locate.x >= m_TileNumX || locate.y >= m_TileNumY)
 		return;
 
-	if (m_pTileLocate[locate.y][locate.x])
+	if (m_pTiles[locate.y][locate.x])
 	{
-		m_pTileLocate[locate.y][locate.x]->Finalize();
-		m_ChildObjectList.erase(std::find(m_ChildObjectList.begin(), m_ChildObjectList.end(), m_pTileLocate[locate.y][locate.x]));
-		AQUA_SAFE_DELETE(m_pTileLocate[locate.y][locate.x]);
+		m_pTiles[locate.y][locate.x]->Finalize();
+		m_ChildObjectList.erase(std::find(m_ChildObjectList.begin(), m_ChildObjectList.end(), m_pTiles[locate.y][locate.x]));
+		AQUA_SAFE_DELETE(m_pTiles[locate.y][locate.x]);
 	}
 }
 
 void CField::ReplaceTile(const aqua::CPoint& locate)
 {
-	if (locate.x < 0 || locate.y < 0 || locate.x >= m_FieldWidth || locate.y >= m_FieldHeight)
+	if (locate.x < 0 || locate.y < 0 || locate.x >= m_TileNumX || locate.y >= m_TileNumY)
 		return;
 
 	DeleteTile(locate);
@@ -463,36 +274,36 @@ void CField::ReplaceTile(const aqua::CPoint& locate)
 	switch (m_tile_menu[m_SelectedTileMenu].first)
 	{
 	case TILE_ID::WALL:
-		m_pTileLocate[locate.y][locate.x] = aqua::CreateGameObject<CWallTile>(this);
-		((CWallTile*)m_pTileLocate[locate.y][locate.x])->Initialize();
+		m_pTiles[locate.y][locate.x] = aqua::CreateGameObject<CWallTile>(this);
+		((CWallTile*)m_pTiles[locate.y][locate.x])->Initialize();
 		break;
 	case TILE_ID::GLASS:
-		m_pTileLocate[locate.y][locate.x] = aqua::CreateGameObject<CGlassTile>(this);
-		((CGlassTile*)m_pTileLocate[locate.y][locate.x])->Initialize();
+		m_pTiles[locate.y][locate.x] = aqua::CreateGameObject<CGlassTile>(this);
+		((CGlassTile*)m_pTiles[locate.y][locate.x])->Initialize();
 		break;
 	case TILE_ID::LASER:
-		m_pTileLocate[locate.y][locate.x] = aqua::CreateGameObject<CLaserTile>(this);
-		((CLaserTile*)m_pTileLocate[locate.y][locate.x])->Initialize(m_SelectedDirection);
+		m_pTiles[locate.y][locate.x] = aqua::CreateGameObject<CLaserTile>(this);
+		((CLaserTile*)m_pTiles[locate.y][locate.x])->Initialize(m_SelectedDirection);
 		break;
 	case TILE_ID::TARGET:
-		m_pTileLocate[locate.y][locate.x] = aqua::CreateGameObject<CTargetTile>(this);
-		((CTargetTile*)m_pTileLocate[locate.y][locate.x])->Initialize(m_SelectedDirection, m_tile_menu[m_SelectedTileMenu].second);
+		m_pTiles[locate.y][locate.x] = aqua::CreateGameObject<CTargetTile>(this);
+		((CTargetTile*)m_pTiles[locate.y][locate.x])->Initialize(m_SelectedDirection, m_tile_menu[m_SelectedTileMenu].second);
 		break;
 	case TILE_ID::MIRROR:
-		m_pTileLocate[locate.y][locate.x] = aqua::CreateGameObject<CMirrorTile>(this);
-		((CMirrorTile*)m_pTileLocate[locate.y][locate.x])->Initialize((DIRECTION_ID)(((int)m_SelectedDirection % 2) * 2));
+		m_pTiles[locate.y][locate.x] = aqua::CreateGameObject<CMirrorTile>(this);
+		((CMirrorTile*)m_pTiles[locate.y][locate.x])->Initialize((DIRECTION_ID)(((int)m_SelectedDirection % 2) * 2));
 		break;
 	case TILE_ID::WAY:
-		m_pTileLocate[locate.y][locate.x] = aqua::CreateGameObject<CWayTile>(this);
-		((CWayTile*)m_pTileLocate[locate.y][locate.x])->Initialize(m_SelectedDirection);
+		m_pTiles[locate.y][locate.x] = aqua::CreateGameObject<CWayTile>(this);
+		((CWayTile*)m_pTiles[locate.y][locate.x])->Initialize(m_SelectedDirection);
 		break;
 	case TILE_ID::CRYSTAL:
-		m_pTileLocate[locate.y][locate.x] = aqua::CreateGameObject<CCrystalTile>(this);
-		((CCrystalTile*)m_pTileLocate[locate.y][locate.x])->Initialize(m_tile_menu[m_SelectedTileMenu].second);
+		m_pTiles[locate.y][locate.x] = aqua::CreateGameObject<CCrystalTile>(this);
+		((CCrystalTile*)m_pTiles[locate.y][locate.x])->Initialize(m_tile_menu[m_SelectedTileMenu].second);
 		break;
 	}
 
-	m_pTileLocate[locate.y][locate.x]->SetLocate(locate);
+	m_pTiles[locate.y][locate.x]->SetLocate(locate);
 }
 
 void CField::LoadMapData(const std::string& file_name)
@@ -523,7 +334,7 @@ void CField::LoadMapData(const std::string& file_name)
 	std::string buf;
 
 	// タイルデータの解放
-	for (auto& y : m_pTileLocate)
+	for (auto& y : m_pTiles)
 		for (auto& x : y)
 			if (x)
 			{
@@ -533,46 +344,46 @@ void CField::LoadMapData(const std::string& file_name)
 			}
 
 	// フィールドの大きさを取得
-	std::getline(ifs, buf);	m_FieldWidth = atoi(buf.c_str());
-	std::getline(ifs, buf);	m_FieldHeight = atoi(buf.c_str());
-	m_pTileLocate.assign(m_FieldHeight, std::vector<ITile*>(m_FieldWidth, nullptr));
+	std::getline(ifs, buf);	m_TileNumX = atoi(buf.c_str());
+	std::getline(ifs, buf);	m_TileNumY = atoi(buf.c_str());
+	m_pTiles.assign(m_TileNumY, std::vector<ITile*>(m_TileNumX, nullptr));
 
 	// テキストファイルからタイル配置
 	std::list<std::pair<char, ITile*>> special_tile_list;
-	for (int y = 0; y < m_FieldHeight; ++y)
+	for (int y = 0; y < m_TileNumY; ++y)
 	{
 		std::getline(ifs, buf);
-		for (int x = 0; x < m_FieldWidth; ++x)
+		for (int x = 0; x < m_TileNumX; ++x)
 		{
 			switch (buf[x])
 			{
 			case '#':
-				m_pTileLocate[y][x] = aqua::CreateGameObject<CWallTile>(this);
-				m_pTileLocate[y][x]->Initialize();
+				m_pTiles[y][x] = aqua::CreateGameObject<CWallTile>(this);
+				m_pTiles[y][x]->Initialize();
 				break;
 			case '-':
-				m_pTileLocate[y][x] = aqua::CreateGameObject<CGlassTile>(this);
-				m_pTileLocate[y][x]->Initialize();
+				m_pTiles[y][x] = aqua::CreateGameObject<CGlassTile>(this);
+				m_pTiles[y][x]->Initialize();
 				break;
 			case 't':
-				m_pTileLocate[y][x] = aqua::CreateGameObject<CTargetTile>(this);
-				special_tile_list.push_back({ buf[x], m_pTileLocate[y][x] });
+				m_pTiles[y][x] = aqua::CreateGameObject<CTargetTile>(this);
+				special_tile_list.push_back({ buf[x], m_pTiles[y][x] });
 				break;
 			case 'l':
-				m_pTileLocate[y][x] = aqua::CreateGameObject<CLaserTile>(this);
-				special_tile_list.push_back({ buf[x], m_pTileLocate[y][x] });
+				m_pTiles[y][x] = aqua::CreateGameObject<CLaserTile>(this);
+				special_tile_list.push_back({ buf[x], m_pTiles[y][x] });
 				break;
 			case 'm':
-				m_pTileLocate[y][x] = aqua::CreateGameObject<CMirrorTile>(this);
-				special_tile_list.push_back({ buf[x], m_pTileLocate[y][x] });
+				m_pTiles[y][x] = aqua::CreateGameObject<CMirrorTile>(this);
+				special_tile_list.push_back({ buf[x], m_pTiles[y][x] });
 				break;
 			case 'w':
-				m_pTileLocate[y][x] = aqua::CreateGameObject<CWayTile>(this);
-				special_tile_list.push_back({ buf[x], m_pTileLocate[y][x] });
+				m_pTiles[y][x] = aqua::CreateGameObject<CWayTile>(this);
+				special_tile_list.push_back({ buf[x], m_pTiles[y][x] });
 				break;
 			case 'c':
-				m_pTileLocate[y][x] = aqua::CreateGameObject<CCrystalTile>(this);
-				special_tile_list.push_back({ buf[x], m_pTileLocate[y][x] });
+				m_pTiles[y][x] = aqua::CreateGameObject<CCrystalTile>(this);
+				special_tile_list.push_back({ buf[x], m_pTiles[y][x] });
 				break;
 			}
 		}
@@ -605,10 +416,10 @@ void CField::LoadMapData(const std::string& file_name)
 	}
 
 	// タイルの位置設定
-	for (int y = 0; y < m_FieldHeight; ++y)
-		for (int x = 0; x < m_FieldWidth; ++x)
-			if (m_pTileLocate[y][x])
-				m_pTileLocate[y][x]->SetLocate(aqua::CPoint(x, y));
+	for (int y = 0; y < m_TileNumY; ++y)
+		for (int x = 0; x < m_TileNumX; ++x)
+			if (m_pTiles[y][x])
+				m_pTiles[y][x]->SetLocate(aqua::CPoint(x, y));
 
 	// ファイルを閉じる
 	ifs.close();
@@ -620,17 +431,17 @@ void CField::SaveMapData(const std::string& file_name) const
 	std::ofstream ofs(file_name);
 
 	// フィールドの大きさを書き込む
-	ofs << m_FieldWidth << '\n';
-	ofs << m_FieldHeight << '\n';
+	ofs << m_TileNumX << '\n';
+	ofs << m_TileNumY << '\n';
 
 	// タイルの配置を書き込む
-	for (int y = 0; y < m_FieldHeight; ++y)
+	for (int y = 0; y < m_TileNumY; ++y)
 	{
-		for (int x = 0; x < m_FieldWidth; ++x)
+		for (int x = 0; x < m_TileNumX; ++x)
 		{
-			if (m_pTileLocate[y][x])
+			if (m_pTiles[y][x])
 			{
-				switch (m_pTileLocate[y][x]->GetTileID())
+				switch (m_pTiles[y][x]->GetTileID())
 				{
 				case TILE_ID::WALL:
 					ofs << '#';
@@ -664,34 +475,256 @@ void CField::SaveMapData(const std::string& file_name) const
 	}
 
 	// 特殊タイルの詳細を書き込む
-	for (int y = 0; y < m_FieldHeight; ++y)
-		for (int x = 0; x < m_FieldWidth; ++x)
-			if (m_pTileLocate[y][x])
-				switch (m_pTileLocate[y][x]->GetTileID())
+	for (int y = 0; y < m_TileNumY; ++y)
+		for (int x = 0; x < m_TileNumX; ++x)
+			if (m_pTiles[y][x])
+				switch (m_pTiles[y][x]->GetTileID())
 				{
 				case TILE_ID::LASER:
 					ofs <<
-						m_direction_table_to_name.at(((CLaserTile*)m_pTileLocate[y][x])->GetDirectionID()) << '\n';
+						m_direction_table_to_name.at(((CLaserTile*)m_pTiles[y][x])->GetDirectionID()) << '\n';
 					break;
 				case TILE_ID::TARGET:
 					ofs <<
-						m_direction_table_to_name.at(((CTargetTile*)m_pTileLocate[y][x])->GetDirectionID()) << ',' <<
-						m_color_table_to_name.at(((CTargetTile*)m_pTileLocate[y][x])->GetColorID()) << '\n';
+						m_direction_table_to_name.at(((CTargetTile*)m_pTiles[y][x])->GetDirectionID()) << ',' <<
+						m_color_table_to_name.at(((CTargetTile*)m_pTiles[y][x])->GetColorID()) << '\n';
 					break;
 				case TILE_ID::MIRROR:
 					ofs <<
-						m_direction_table_to_name.at(((CMirrorTile*)m_pTileLocate[y][x])->GetDirectionID()) << '\n';
+						m_direction_table_to_name.at(((CMirrorTile*)m_pTiles[y][x])->GetDirectionID()) << '\n';
 					break;
 				case TILE_ID::WAY:
 					ofs <<
-						m_direction_table_to_name.at(((CWayTile*)m_pTileLocate[y][x])->GetDirectionID()) << '\n';
+						m_direction_table_to_name.at(((CWayTile*)m_pTiles[y][x])->GetDirectionID()) << '\n';
 					break;
 				case TILE_ID::CRYSTAL:
 					ofs <<
-						m_color_table_to_name.at(((CCrystalTile*)m_pTileLocate[y][x])->GetColorID()) << '\n';
+						m_color_table_to_name.at(((CCrystalTile*)m_pTiles[y][x])->GetColorID()) << '\n';
 					break;
 				}
 
 	// ファイルを閉じる
 	ofs.close();
+}
+
+void CField::Update_01_LoadDragFileMapData()
+{
+	while (DxLib::GetDragFileNum() > 0)
+	{
+		char buf[1024];
+		DxLib::GetDragFilePath(buf);
+		m_LoadFilePath = buf;
+		LoadMapData(m_LoadFilePath.string());
+	}
+}
+
+void CField::Update_02_ChangeTileMenu()
+{
+	int mouse_wheel = std::clamp(aqua::mouse::GetWheel(), -1, 1);
+	if (!aqua::keyboard::Button(aqua::keyboard::KEY_ID::LSHIFT))
+	{
+		int next_selected_menu = m_SelectedTileMenu - mouse_wheel;
+		next_selected_menu = (next_selected_menu + m_tile_menu_num) % m_tile_menu_num;
+		if (next_selected_menu != m_SelectedTileMenu)
+		{
+			m_SelectedTileMenu = next_selected_menu;
+			m_pSoundManager->Play(SOUND_ID::BUTTON_CURSOR_SE);
+		}
+	}
+	else
+	{
+		DIRECTION_ID next_direction = (DIRECTION_ID)((int)m_SelectedDirection - mouse_wheel);
+		next_direction = (DIRECTION_ID)(((int)next_direction + (int)DIRECTION_ID::MAX) % (int)DIRECTION_ID::MAX);
+		if (next_direction != m_SelectedDirection)
+		{
+			m_SelectedDirection = next_direction;
+			m_pSoundManager->Play(SOUND_ID::BUTTON_CURSOR_SE);
+		}
+	}
+
+	m_TileMenuSprite.rect.left = (int)m_TileMenuSprite.GetTextureWidth() / m_tile_menu_num * m_SelectedTileMenu;
+	m_TileMenuSprite.rect.right = m_TileMenuSprite.rect.left + (int)m_TileMenuSprite.GetTextureWidth() / m_tile_menu_num;
+	switch (m_tile_menu[m_SelectedTileMenu].first)
+	{
+	case TILE_ID::WALL:
+		m_TileMenuSprite.rotation = 0.0f;
+		break;
+	case TILE_ID::GLASS:
+		m_TileMenuSprite.rotation = 0.0f;
+		break;
+	case TILE_ID::LASER:
+		m_TileMenuSprite.rotation = (float)(aqua::PI / 2.0f) * (int)m_SelectedDirection;
+		break;
+	case TILE_ID::TARGET:
+		m_TileMenuSprite.rotation = (float)(aqua::PI / 2.0f) * (int)m_SelectedDirection;
+		break;
+	case TILE_ID::MIRROR:
+		m_TileMenuSprite.rotation = (float)(aqua::PI / 2.0f) * (((int)m_SelectedDirection % 2) == 1);
+		break;
+	case TILE_ID::WAY:
+		m_TileMenuSprite.rotation = (float)(aqua::PI / 2.0f) * (int)m_SelectedDirection;
+		break;
+	case TILE_ID::CRYSTAL:
+		m_TileMenuSprite.rotation = 0.0f;
+		break;
+	}
+}
+
+void CField::Update_03_ChangeTileNum()
+{
+	int next_w = max(m_TileNumX + aqua::keyboard::Trigger(aqua::keyboard::KEY_ID::RIGHT) - aqua::keyboard::Trigger(aqua::keyboard::KEY_ID::LEFT), 1);
+	int next_h = max(m_TileNumY + aqua::keyboard::Trigger(aqua::keyboard::KEY_ID::DOWN) - aqua::keyboard::Trigger(aqua::keyboard::KEY_ID::UP), 1);
+
+	if (next_w != m_TileNumX || next_h != m_TileNumY)
+	{
+		ResizeField(next_w, next_h);
+		m_pSoundManager->Play(SOUND_ID::TILE_MOVE_SE);
+	}
+}
+
+void CField::Update_04_TileDrawSettings()
+{
+	m_DispTileSize = min(((float)aqua::GetWindowWidth() - m_edge_space) / m_TileNumX, ((float)aqua::GetWindowHeight() - m_edge_space) / m_TileNumY);
+	m_OutAreaTileSprite.scale.x = m_DispTileSize / (float)m_OutAreaTileSprite.GetTextureWidth();
+	m_OutAreaTileSprite.scale.y = m_DispTileSize / (float)m_OutAreaTileSprite.GetTextureHeight();
+}
+
+void CField::Update_05_PlaceAndEraseTile()
+{
+	m_CursorLocate_prev = m_CursorLocate;
+	m_CursorLocate.x = (int)floorf((float)(aqua::mouse::GetCursorPos().x - ((int)aqua::GetWindowWidth() - m_DispTileSize * m_TileNumX) / 2) / (float)m_DispTileSize);
+	m_CursorLocate.y = (int)floorf((float)(aqua::mouse::GetCursorPos().y - ((int)aqua::GetWindowHeight() - m_DispTileSize * m_TileNumY) / 2) / (float)m_DispTileSize);
+
+	if (m_CursorLocate.x >= 0 &&
+		m_CursorLocate.y >= 0 &&
+		m_CursorLocate.x < m_TileNumX &&
+		m_CursorLocate.y < m_TileNumY)
+	{
+		if (aqua::mouse::Trigger(aqua::mouse::BUTTON_ID::LEFT) ||
+			m_CursorLocate_prev != m_CursorLocate && aqua::mouse::Button(aqua::mouse::BUTTON_ID::LEFT))
+		{
+			ReplaceTile(m_CursorLocate);
+			m_pSoundManager->Play(SOUND_ID::TILE_PICK_SE);
+		}
+		if (aqua::mouse::Trigger(aqua::mouse::BUTTON_ID::RIGHT) ||
+			m_CursorLocate_prev != m_CursorLocate && aqua::mouse::Button(aqua::mouse::BUTTON_ID::RIGHT))
+		{
+			DeleteTile(m_CursorLocate);
+			m_pSoundManager->Play(SOUND_ID::TILE_PUT_SE);
+		}
+	}
+}
+
+void CField::Update_06_SaveMapData()
+{
+	if (aqua::keyboard::Button(aqua::keyboard::KEY_ID::LCONTROL) && aqua::keyboard::Trigger(aqua::keyboard::KEY_ID::S))
+	{
+		std::string tmp_str;
+		char tmp_initial_dir[1024];
+		char tmp_file[1024];
+
+		tmp_str = m_LoadFilePath.parent_path().string() + "/";
+		std::memcpy(tmp_initial_dir, tmp_str.c_str(), tmp_str.size());
+		tmp_initial_dir[tmp_str.size()] = '\0';
+
+		tmp_str = m_LoadFilePath.string();
+		std::memcpy(tmp_file, tmp_str.c_str(), tmp_str.size());
+		tmp_file[tmp_str.size()] = '\0';
+
+		OPENFILENAME f_data = {};
+		f_data.lStructSize = sizeof(OPENFILENAME);
+		f_data.hwndOwner = aqua::GetWindowHandle();
+		f_data.lpstrFilter = TEXT("TXTファイル(*.txt)\0*.txt\0\0");
+		f_data.lpstrFile = tmp_file;
+		f_data.nMaxFile = 1024;
+		f_data.lpstrInitialDir = tmp_initial_dir;
+		f_data.lpstrTitle = TEXT("マップデータの保存");
+		f_data.Flags =
+			OFN_OVERWRITEPROMPT |
+			OFN_NOCHANGEDIR |
+			OFN_FILEMUSTEXIST;
+		f_data.lpstrDefExt = TEXT("*.txt");
+
+		if (GetSaveFileName(&f_data) == IDOK)
+		{
+			SaveMapData(tmp_file);
+			m_LoadFilePath = f_data.lpstrFile;
+		}
+	}
+}
+
+void CField::Update_07_Tiles()
+{
+	for (int y = 0; y < m_TileNumY; ++y)
+		for (int x = 0; x < m_TileNumX; ++x)
+			if (m_pTiles[y][x])
+			{
+				m_pTiles[y][x]->SetDispSize(m_DispTileSize);
+				m_pTiles[y][x]->SetPosition(aqua::CVector2((float)aqua::GetWindowWidth() - m_DispTileSize * m_TileNumX, (float)aqua::GetWindowHeight() - m_DispTileSize * m_TileNumY) * 0.5f + m_DispTileSize * aqua::CVector2((float)x, (float)y));
+				m_pTiles[y][x]->Update();
+			}
+}
+
+void CField::Update_08_CalcLaser()
+{
+	m_LaserChain.clear();
+
+	// 軌道計算のラムダ式
+	auto f_set_chain_laser = [&](auto fn, const std::pair<aqua::CPoint, SLaserData>& laser_data) -> void
+	{
+		aqua::CPoint next_point = laser_data.first;
+		switch (laser_data.second.direction)
+		{
+		case DIRECTION_ID::RIGHT:	++next_point.x;	break;
+		case DIRECTION_ID::DOWN:	++next_point.y;	break;
+		case DIRECTION_ID::LEFT:	--next_point.x;	break;
+		case DIRECTION_ID::UP:		--next_point.y;	break;
+		}
+
+		m_LaserChain.push_back({ next_point ,laser_data.second });
+
+		if (next_point.x < 0 || next_point.y < 0 || next_point.x >= m_TileNumX || next_point.y >= m_TileNumY)
+			return;
+
+		if (m_pTiles[next_point.y][next_point.x])
+		{
+			if (m_pTiles[next_point.y][next_point.x]->GetTileID() == TILE_ID::TARGET)
+				((CTargetTile*)m_pTiles[next_point.y][next_point.x])->IrradiateLaser(laser_data.second);
+
+			for (auto& i : m_pTiles[next_point.y][next_point.x]->GetConvertedLaser(laser_data.second))
+				fn(fn, { next_point, i });
+		}
+		else
+		{
+			fn(fn, { next_point, laser_data.second });
+		}
+	};
+
+	// 全てのターゲットの照射フラグを下げる
+	for (int y = 0; y < m_TileNumY; ++y)
+		for (int x = 0; x < m_TileNumX; ++x)
+			if (m_pTiles[y][x])
+				if (m_pTiles[y][x]->GetTileID() == TILE_ID::TARGET)
+					((CTargetTile*)m_pTiles[y][x])->SetLitFlag(false);
+
+	// レーザーの軌道処理、ターゲットへの照射処理
+	for (int y = 0; y < m_TileNumY; ++y)
+		for (int x = 0; x < m_TileNumX; ++x)
+			if (m_pTiles[y][x])
+				if (m_pTiles[y][x]->GetTileID() == TILE_ID::LASER)
+					for (const auto& i : ((CLaserTile*)m_pTiles[y][x])->GetGeneratedLaser())
+						f_set_chain_laser(f_set_chain_laser, { aqua::CPoint(x, y), i });
+}
+
+void CField::Update_09_CursorDrawSettings()
+{
+	m_CursorHorizontalBox.height = m_DispTileSize;
+	m_CursorVerticalBox.width = m_DispTileSize;
+	m_CursorHorizontalBox.position.y = (aqua::GetWindowHeight() - m_DispTileSize * m_TileNumY) / 2.0f + m_DispTileSize * m_CursorLocate.y;
+	m_CursorVerticalBox.position.x = (aqua::GetWindowWidth() - m_DispTileSize * m_TileNumX) / 2.0f + m_DispTileSize * m_CursorLocate.x;
+}
+
+void CField::Update_10_Animations()
+{
+	m_LaserTrailSprite.Update();
 }

@@ -37,6 +37,13 @@ void CMirrorTile::Update()
 
 void CMirrorTile::Draw()
 {
+	m_Sprite.color = 0xffffffff;
+	m_Sprite.Draw();
+}
+
+void CMirrorTile::Draw_Lit()
+{
+	m_Sprite.color = 0xff000000;
 	m_Sprite.Draw();
 }
 
@@ -51,11 +58,6 @@ void CMirrorTile::Finalize()
 TILE_ID CMirrorTile::GetTileID() const
 {
 	return TILE_ID::MIRROR;
-}
-
-DIRECTION_ID CMirrorTile::GetDirectionID() const
-{
-	return m_Direction;
 }
 
 bool CMirrorTile::IsMovable() const
@@ -88,7 +90,7 @@ std::list<SLaserData> CMirrorTile::GetConvertedLaser(const SLaserData& laser) co
 	return {};
 }
 
-void CMirrorTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserData& laser_data) const
+void CMirrorTile::DrawLaserTrail(aqua::CAnimationSprite laser_sprite, const SLaserData& laser_data) const
 {
 	// ï`âÊÉÇÅ[ÉhÇÃê›íË
 	DxLib::SetDrawBlendMode((int)laser_sprite.blend_mode, laser_sprite.color.alpha);
@@ -101,11 +103,11 @@ void CMirrorTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaser
 			laser_sprite.GetResourceHandle(),
 			m_LaserMaskTexture.GetResourceHandle(),
 			m_LaserDestScreen,
-			laser_sprite.rect.left,
-			laser_sprite.rect.top,
-			laser_sprite.rect.right,
-			laser_sprite.rect.bottom,
-			24 * ((int)laser_data.direction % 2 == (int)m_Direction / 2),
+			m_tile_size * (laser_sprite.GetCurrentFrameID() % laser_sprite.GetFrameCols()),
+			m_tile_size * (laser_sprite.GetCurrentFrameID() / laser_sprite.GetFrameCols()),
+			m_tile_size * (laser_sprite.GetCurrentFrameID() % laser_sprite.GetFrameCols()) + m_tile_size,
+			m_tile_size * (laser_sprite.GetCurrentFrameID() / laser_sprite.GetFrameCols()) + m_tile_size,
+			m_tile_size * ((int)laser_data.direction % 2 == (int)m_Direction / 2),
 			0,
 			0,
 			0,
@@ -117,8 +119,8 @@ void CMirrorTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaser
 			laser_sprite.position.y + laser_sprite.anchor.y,
 			0,
 			0,
-			24,
-			24,
+			m_tile_size,
+			m_tile_size,
 			laser_sprite.anchor.x,
 			laser_sprite.anchor.y,
 			laser_sprite.scale.x,
@@ -134,11 +136,11 @@ void CMirrorTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaser
 			laser_sprite.GetResourceHandle(),
 			m_LaserMaskTexture.GetResourceHandle(),
 			m_LaserDestScreen,
-			laser_sprite.rect.left,
-			laser_sprite.rect.top,
-			laser_sprite.rect.right,
-			laser_sprite.rect.bottom,
-			48 + 24 * ((int)laser_data.direction % 2 == (int)m_Direction / 2),
+			m_tile_size * (laser_sprite.GetCurrentFrameID() % laser_sprite.GetFrameCols()),
+			m_tile_size * (laser_sprite.GetCurrentFrameID() / laser_sprite.GetFrameCols()),
+			m_tile_size * (laser_sprite.GetCurrentFrameID() % laser_sprite.GetFrameCols()) + m_tile_size,
+			m_tile_size * (laser_sprite.GetCurrentFrameID() / laser_sprite.GetFrameCols()) + m_tile_size,
+			m_tile_size * 2 + m_tile_size * ((int)laser_data.direction % 2 == (int)m_Direction / 2),
 			0,
 			0,
 			0,
@@ -150,8 +152,8 @@ void CMirrorTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaser
 			laser_sprite.position.y + laser_sprite.anchor.y,
 			0,
 			0,
-			24,
-			24,
+			m_tile_size,
+			m_tile_size,
 			laser_sprite.anchor.x,
 			laser_sprite.anchor.y,
 			laser_sprite.scale.x,

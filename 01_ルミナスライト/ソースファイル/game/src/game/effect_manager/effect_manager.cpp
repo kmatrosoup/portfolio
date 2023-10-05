@@ -8,8 +8,9 @@ CEffectManager::CEffectManager(aqua::IGameObject* parent)
 {
 }
 
-void CEffectManager::Draw()
+void CEffectManager::Draw_Lit()
 {
+	IGameObject::Draw();
 }
 
 void CEffectManager::CreateEffect_RandomParticle()
@@ -34,10 +35,4 @@ void CEffectManager::ClearEffects()
 		AQUA_SAFE_DELETE(i);
 	}
 	m_ChildObjectList.clear();
-}
-
-void CEffectManager::DrawEffects() const
-{
-	for (const auto& i : m_ChildObjectList)
-		i->Draw();
 }

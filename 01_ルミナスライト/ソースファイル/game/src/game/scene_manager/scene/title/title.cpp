@@ -1,8 +1,8 @@
 #include "title.h"
-#include "../../../common_data/common_data.h"
+#include "../../../back_ground/back_ground.h"
+#include "../../../fade_screen/fade_screen.h"
 #include "../../../effect_manager/effect_manager.h"
 #include "../../../sound_manager/sound_manager.h"
-#include "../../../glow_screen/glow_screen.h"
 
 const int			CTitle::m_start_button_pos_y = 520;
 const int			CTitle::m_exit_button_pos_y = 640;
@@ -13,7 +13,6 @@ const float			CTitle::m_spot_light_time = 1.18f;
 const float			CTitle::m_button_click_time = 0.4f;
 const float			CTitle::m_min_create_particle_time = 0.02f;
 const float			CTitle::m_max_create_particle_time = 0.08f;
-const float			CTitle::m_change_scene_time = 0.4f;
 const unsigned int	CTitle::m_logo_color_table[7] =
 {
 	0xff802030,
@@ -27,26 +26,24 @@ const unsigned int	CTitle::m_logo_color_table[7] =
 
 CTitle::CTitle(IGameObject* parent)
 	: IScene(parent, "Title")
-	, m_pCommonData(nullptr)
+	, m_pBackGround(nullptr)
+	, m_pFadeScreen(nullptr)
 	, m_pEffectManager(nullptr)
 	, m_pSoundManager(nullptr)
-	, m_pGlowScreen(nullptr)
 	, m_ButtonCursor(-1)
 	, m_ButtonCursor_prev(-1)
 	, m_ButtonClickedFlag(false)
-	, m_ChangeSceneFlag(false)
+	, m_IsPlayedLightUpSE(false)
 {
 }
 
 void CTitle::Initialize()
 {
-	Finalize();
-
 	// ゲームオブジェクトの取得
-	m_pCommonData = (CCommonData*)aqua::FindGameObject("CommonData");
+	m_pBackGround = (CBackGround*)aqua::FindGameObject("BackGround");
+	m_pFadeScreen = (CFadeScreen*)aqua::FindGameObject("FadeScreen");
 	m_pEffectManager = (CEffectManager*)aqua::FindGameObject("EffectManager");
 	m_pSoundManager = (CSoundManager*)aqua::FindGameObject("SoundManager");
-	m_pGlowScreen = (CGlowScreen*)aqua::FindGameObject("GlowScreen");
 
 	// リソースの読み込み
 	m_LogoBackSprite.Create("data\\title_logo_back.png");
@@ -85,11 +82,6 @@ void CTitle::Initialize()
 	m_SpotLightSprite.blend_mode = aqua::ALPHABLEND::ADD;
 	m_SpotLightSprite.visible = false;
 
-	m_ChangeSceneEffectSprite.Create("data\\scene_change_effect.png");
-	m_ChangeSceneEffectSprite.scale = aqua::CVector2::ONE * 40.0f;
-	m_ChangeSceneEffectSurface.Create((int)aqua::GetWindowWidth(), (int)aqua::GetWindowHeight(), true);
-	m_ChangeSceneEffectSprite_Dest.Create(m_ChangeSceneEffectSurface);
-
 	// タイマーの設定
 	for (int i = 0; i < 7; ++i)
 		m_LogoPartTimer[i].Setup(m_min_part_time + (m_max_part_time - m_min_part_time) * aqua::Rand(1000) / 1000.0f);
@@ -97,14 +89,13 @@ void CTitle::Initialize()
 	m_SpotLightTimer.Setup(m_spot_light_time);
 	m_ButtonClickTimer.Setup(m_button_click_time);
 	m_CreateParticleTimer.Setup(m_min_create_particle_time + (m_max_create_particle_time - m_min_create_particle_time) * aqua::Rand(1000) / 1000.0f);
-	m_ChangeSceneTimer.Setup(m_change_scene_time);
 
 	// 開始処理
-	m_pCommonData->SetBGParamR(0.0f);
-	m_pCommonData->SetBGParamG(0.0f);
-	m_pCommonData->SetBGParamB(0.0f);
+	m_pBackGround->paramR = 0.0f;
+	m_pBackGround->paramG = 0.0f;
+	m_pBackGround->paramB = 0.0f;
+	m_pFadeScreen->SetFade(false);
 	m_pEffectManager->ClearEffects();
-	m_pSoundManager->Play(SOUND_ID::LIGHTUP_SE);
 }
 
 void CTitle::Update()
@@ -138,7 +129,7 @@ void CTitle::Update()
 	{
 		m_ButtonClickTimer.Update();
 		if (m_ButtonClickTimer.Finished())
-			m_ChangeSceneFlag = true;
+			m_pFadeScreen->SetFade(true);
 
 		switch (m_ButtonCursor)
 		{
@@ -154,23 +145,16 @@ void CTitle::Update()
 	}
 
 	// ボタン演出後の処理
-	if (m_ChangeSceneFlag)
+	if (m_pFadeScreen->IsFinish())
 	{
-		m_ChangeSceneTimer.Update();
-		if (m_ChangeSceneTimer.Finished())
-			m_ChangeSceneTimer.SetTime(m_change_scene_time);
-
-		if (m_ChangeSceneTimer.Finished())
+		switch (m_ButtonCursor)
 		{
-			switch (m_ButtonCursor)
-			{
-			case 0:
-				ChangeScene(SCENE_ID::LEVEL_SELECT);
-				break;
-			case 1:
-				aqua::ExitGame();
-				break;
-			}
+		case 0:
+			ChangeScene(SCENE_ID::LEVEL_SELECT);
+			break;
+		case 1:
+			aqua::ExitGame();
+			break;
 		}
 	}
 
@@ -228,79 +212,84 @@ void CTitle::Update()
 		m_ExitButtonInvSprite.rect.right += (int)ceilf(((float)m_ExitButtonInvSprite.GetTextureWidth() + 20.0f - m_ExitButtonInvSprite.rect.right) * 0.15f) :
 		m_ExitButtonInvSprite.rect.right += (int)floorf((-20.0f - m_ExitButtonInvSprite.rect.right) * 0.1f);
 
-	// シーン切り替え演出の更新
-	m_ChangeSceneEffectSurface.Begin();
-	aqua::Clear(0x00000000);
-	m_ChangeSceneEffectSprite.Draw();
-	m_ChangeSceneEffectSurface.End();
-	DxLib::GraphFilter(m_ChangeSceneEffectSurface.GetTexture().GetResourceHandle(), DX_GRAPH_FILTER_TWO_COLOR,
-		(int)(m_ChangeSceneTimer.GetTime() / m_change_scene_time * 255.0f),
-		0xff000000,
-		255,
-		0xff000000,
-		0);
-
-	// グロー効果付与の描画
-	m_pGlowScreen->Begin();
-	{
-		for (int i = 0; i < 7; ++i)
-		{
-			m_LogoPartSprite[i].color = m_logo_color_table[i];
-			m_LogoPartSprite[i].Draw();
-			m_LogoPartSprite[i].color = 0xffffffff;
-		}
-		if (m_ButtonClickedFlag)
-		{
-			switch (m_ButtonCursor)
-			{
-			case 0:
-				m_StartButtonInvSprite.color = 0xffa08040;
-				m_StartButtonInvSprite.color.alpha = (unsigned char)(max(1.0f - m_ButtonClickTimer.GetTime(), 0.0f) * 255.0f);
-				m_StartButtonInvSprite.Draw();
-				m_StartButtonInvSprite.color = 0xffffffff;
-				break;
-			case 1:
-				m_ExitButtonInvSprite.color = 0xffa08040;
-				m_ExitButtonInvSprite.color.alpha = (unsigned char)(max(1.0f - m_ButtonClickTimer.GetTime(), 0.0f) * 255.0f);
-				m_ExitButtonInvSprite.Draw();
-				m_ExitButtonInvSprite.color = 0xffffffff;
-				break;
-			}
-		}
-		m_SpotLightSprite.Draw();
-		m_pEffectManager->DrawEffects();
-		m_ChangeSceneEffectSprite_Dest.Draw();
-	}
-	m_pGlowScreen->End();
-
 	// 背景色の更新
 	if (!m_SpotLightTimer.Finished())
 	{
-		m_pCommonData->SetBGParamR(0.0f);
-		m_pCommonData->SetBGParamG(0.0f);
-		m_pCommonData->SetBGParamB(0.0f);
+		m_pBackGround->paramR = 0.0f;
+		m_pBackGround->paramG = 0.0f;
+		m_pBackGround->paramB = 0.0f;
 	}
 	else
 	{
-		m_pCommonData->SetBGParamR(m_pCommonData->GetBGParamR() + (0.10 - m_pCommonData->GetBGParamR()) * 0.1f);
-		m_pCommonData->SetBGParamG(m_pCommonData->GetBGParamG() + (0.10 - m_pCommonData->GetBGParamG()) * 0.1f);
-		m_pCommonData->SetBGParamB(m_pCommonData->GetBGParamB() + (0.10 - m_pCommonData->GetBGParamB()) * 0.1f);
+		m_pBackGround->paramR += (0.1f - m_pBackGround->paramR) * 0.1f;
+		m_pBackGround->paramG += (0.1f - m_pBackGround->paramG) * 0.1f;
+		m_pBackGround->paramB += (0.1f - m_pBackGround->paramB) * 0.1f;
+	}
+
+	// 点灯SEの再生
+	if (!m_IsPlayedLightUpSE)
+	{
+		m_pSoundManager->Play(SOUND_ID::LIGHTUP_SE);
+		m_IsPlayedLightUpSE = true;
 	}
 }
 
 void CTitle::Draw()
 {
+	// タイトルロゴ
+	m_LogoBackSprite.color = 0xffffffff;
 	m_LogoBackSprite.Draw();
 	for (int i = 0; i < 7; ++i)
+	{
+		m_LogoPartSprite[i].color = 0xffffffff;
 		m_LogoPartSprite[i].Draw();
+	}
 
+	// ボタン
 	m_StartButtonSprite.Draw();
+	m_StartButtonInvSprite.color = 0xffffffff;
 	m_StartButtonInvSprite.Draw();
+
 	m_ExitButtonSprite.Draw();
+	m_ExitButtonInvSprite.color = 0xffffffff;
 	m_ExitButtonInvSprite.Draw();
+
+	// スポットライト
 	m_SpotLightSprite.Draw();
-	m_pEffectManager->DrawEffects();
-	m_ChangeSceneEffectSprite_Dest.Draw();
+}
+
+void CTitle::Draw_Lit()
+{
+	// タイトルロゴ
+	m_LogoBackSprite.color = 0xff000000;
+	m_LogoBackSprite.Draw();
+	for (int i = 0; i < 7; ++i)
+	{
+		m_LogoPartSprite[i].color = m_logo_color_table[i];
+		m_LogoPartSprite[i].Draw();
+	}
+
+	// ボタン
+	if (m_ButtonClickedFlag)
+	{
+		switch (m_ButtonCursor)
+		{
+		case 0:
+			m_StartButtonInvSprite.color = 0xffa08040;
+			m_StartButtonInvSprite.color.alpha = (unsigned char)(max(1.0f - m_ButtonClickTimer.GetTime(), 0.0f) * 255.0f);
+			m_StartButtonInvSprite.Draw();
+			break;
+
+		case 1:
+			m_ExitButtonInvSprite.color = 0xffa08040;
+			m_ExitButtonInvSprite.color.alpha = (unsigned char)(max(1.0f - m_ButtonClickTimer.GetTime(), 0.0f) * 255.0f);
+			m_ExitButtonInvSprite.Draw();
+			break;
+		}
+	}
+
+	// スポットライト
+	m_SpotLightSprite.Draw();
 }
 
 void CTitle::Finalize()
@@ -313,7 +302,4 @@ void CTitle::Finalize()
 	m_ExitButtonSprite.Delete();
 	m_ExitButtonInvSprite.Delete();
 	m_SpotLightSprite.Delete();
-	m_ChangeSceneEffectSprite.Delete();
-	m_ChangeSceneEffectSurface.Delete();
-	m_ChangeSceneEffectSprite_Dest.Delete();
 }

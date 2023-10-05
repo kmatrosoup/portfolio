@@ -12,13 +12,13 @@ public:
 	void Initialize() override;
 	void Finalize() override;
 
-	void Play(SOUND_ID id);
-	void Stop(SOUND_ID id);
-	bool IsPlaying(SOUND_ID id);
+	void Play(SOUND_ID id);			// 再生
+	void Stop(SOUND_ID id);			// 停止
+	bool IsPlaying(SOUND_ID id);	// 再生中判定
 
 private:
-	void LoadSoundData(const std::string& file_name);
+	void LoadSoundData(const std::string& file_name); // 音声ファイルの読み込み
 
 private:
-	aqua::CSoundPlayer m_SoundData[(int)SOUND_ID::MAX];
+	aqua::CSoundPlayer m_SoundData[(int)SOUND_ID::MAX];	// サウンドデータ
 };

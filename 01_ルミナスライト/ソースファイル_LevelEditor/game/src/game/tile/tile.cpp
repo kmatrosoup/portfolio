@@ -1,5 +1,7 @@
 #include "tile.h"
 
+const int ITile::m_tile_size = 24;
+
 ITile::ITile(IGameObject* parent, const std::string& name)
 	: IGameObject(parent, name, "Tile")
 	, m_DispSize(0.0f)

@@ -43,7 +43,19 @@ void CWallTile::Update()
 void CWallTile::Draw()
 {
 	for (int i = 0; i < 4; ++i)
+	{
+		m_Sprite[i].color = 0xffffffff;
 		m_Sprite[i].Draw();
+	}
+}
+
+void CWallTile::Draw_Lit()
+{
+	for (int i = 0; i < 4; ++i)
+	{
+		m_Sprite[i].color = 0xff000000;
+		m_Sprite[i].Draw();
+	}
 }
 
 void CWallTile::Finalize()
@@ -67,6 +79,6 @@ std::list<SLaserData> CWallTile::GetConvertedLaser(const SLaserData& laser) cons
 	return {};
 }
 
-void CWallTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserData& laser_data) const
+void CWallTile::DrawLaserTrail(aqua::CAnimationSprite laser_sprite, const SLaserData& laser_data) const
 {
 }

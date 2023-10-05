@@ -1,0 +1,26 @@
+{
+	"file": "data/level_button.png",
+	"frame": {
+		"width": 40,
+		"height": 40,
+		"cols": 1,
+		"rows": 3
+	},
+	"animations": {
+		"lock": {
+			"frames": [ 0 ],
+			"interval": 0.0,
+			"loop": false
+		},
+		"unlock": {
+			"frames": [ 1 ],
+			"interval": 0.0,
+			"loop": false
+		},
+		"clear": {
+			"frames": [ 2 ],
+			"interval": 0.0,
+			"loop": false
+		}
+	}
+}

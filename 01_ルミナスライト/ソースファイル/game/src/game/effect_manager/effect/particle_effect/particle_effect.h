@@ -14,18 +14,18 @@ public:
 	void Finalize() override;
 
 private:
-	static const float m_min_active_time;
-	static const float m_max_active_time;
-	static const float m_min_base_scale;
-	static const float m_max_base_scale;
-	static const float m_min_incremental_scale;
-	static const float m_max_incremental_scale;
+	static const float m_min_active_time;		// 最低生存時間
+	static const float m_max_active_time;		// 最大生存時間
+	static const float m_min_base_scale;		// 最低元スケール
+	static const float m_max_base_scale;		// 最大元スケール
+	static const float m_min_incremental_scale;	// 最低スケール加算値
+	static const float m_max_incremental_scale;	// 最大スケール加算値
 
-	aqua::CTimer m_ActiveTimer;
-	aqua::CVector2 m_Position;
-	aqua::CVector2 m_Velocity;
-	float m_BaseScale;
-	float m_IncrementalScale;
+	aqua::CTimer m_ActiveTimer;	// 生存時間
+	aqua::CVector2 m_Position;	// 座標
+	aqua::CVector2 m_Velocity;	// 移動量
+	float m_BaseScale;			// 元スケール
+	float m_IncrementalScale;	// スケール加算値
 
-	aqua::CSprite m_ParticleSprite;
+	aqua::CSprite m_ParticleSprite;	// 粒子エフェクトの画像
 };

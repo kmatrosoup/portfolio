@@ -34,8 +34,9 @@ bool CSoundManager::IsPlaying(SOUND_ID id)
 
 void CSoundManager::LoadSoundData(const std::string& file_name)
 {
-	// ファイルを開く
 	Finalize();
+
+	// ファイルを開く
 	std::ifstream ifs(file_name, std::ios::in);
 	AQUA_ASSERT(!ifs.fail(), file_name + "の読み込みに失敗しました。\\");
 

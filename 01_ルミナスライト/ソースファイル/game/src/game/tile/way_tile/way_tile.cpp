@@ -40,6 +40,13 @@ void CWayTile::Update()
 
 void CWayTile::Draw()
 {
+	m_Sprite.color = 0xffffffff;
+	m_Sprite.Draw();
+}
+
+void CWayTile::Draw_Lit()
+{
+	m_Sprite.color = 0xff000000;
 	m_Sprite.Draw();
 }
 
@@ -71,7 +78,7 @@ std::list<SLaserData> CWayTile::GetConvertedLaser(const SLaserData& laser) const
 		SLaserData((DIRECTION_ID)(((int)laser.direction + 3) % 4), laser.color) };
 }
 
-void CWayTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserData& laser_data) const
+void CWayTile::DrawLaserTrail(aqua::CAnimationSprite laser_sprite, const SLaserData& laser_data) const
 {
 	// å¸Ç´Ç™à·Ç§èÍçáÇÕï`âÊÇµÇ»Ç¢
 	if (laser_data.direction != m_Direction)
@@ -88,10 +95,10 @@ void CWayTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserDat
 			laser_sprite.GetResourceHandle(),
 			m_LaserMaskTexture.GetResourceHandle(),
 			m_LaserDestScreen,
-			laser_sprite.rect.left,
-			laser_sprite.rect.top,
-			laser_sprite.rect.right,
-			laser_sprite.rect.bottom,
+			m_tile_size * (laser_sprite.GetCurrentFrameID() % laser_sprite.GetFrameCols()),
+			m_tile_size * (laser_sprite.GetCurrentFrameID() / laser_sprite.GetFrameCols()),
+			m_tile_size * (laser_sprite.GetCurrentFrameID() % laser_sprite.GetFrameCols()) + m_tile_size,
+			m_tile_size * (laser_sprite.GetCurrentFrameID() / laser_sprite.GetFrameCols()) + m_tile_size,
 			0,
 			0,
 			0,
@@ -104,8 +111,8 @@ void CWayTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserDat
 			laser_sprite.position.y + laser_sprite.anchor.y,
 			0,
 			0,
-			24,
-			24,
+			m_tile_size,
+			m_tile_size,
 			laser_sprite.anchor.x,
 			laser_sprite.anchor.y,
 			laser_sprite.scale.x,
@@ -121,11 +128,11 @@ void CWayTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserDat
 			laser_sprite.GetResourceHandle(),
 			m_LaserMaskTexture.GetResourceHandle(),
 			m_LaserDestScreen,
-			laser_sprite.rect.left,
-			laser_sprite.rect.top,
-			laser_sprite.rect.right,
-			laser_sprite.rect.bottom,
-			24,
+			m_tile_size * (laser_sprite.GetCurrentFrameID() % laser_sprite.GetFrameCols()),
+			m_tile_size * (laser_sprite.GetCurrentFrameID() / laser_sprite.GetFrameCols()),
+			m_tile_size * (laser_sprite.GetCurrentFrameID() % laser_sprite.GetFrameCols()) + m_tile_size,
+			m_tile_size * (laser_sprite.GetCurrentFrameID() / laser_sprite.GetFrameCols()) + m_tile_size,
+			m_tile_size,
 			0,
 			0,
 			0,
@@ -137,8 +144,8 @@ void CWayTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserDat
 			laser_sprite.position.y + laser_sprite.anchor.y,
 			0,
 			0,
-			24,
-			24,
+			m_tile_size,
+			m_tile_size,
 			laser_sprite.anchor.x,
 			laser_sprite.anchor.y,
 			laser_sprite.scale.x,
@@ -154,11 +161,11 @@ void CWayTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserDat
 			laser_sprite.GetResourceHandle(),
 			m_LaserMaskTexture.GetResourceHandle(),
 			m_LaserDestScreen,
-			laser_sprite.rect.left,
-			laser_sprite.rect.top,
-			laser_sprite.rect.right,
-			laser_sprite.rect.bottom,
-			24,
+			m_tile_size * (laser_sprite.GetCurrentFrameID() % laser_sprite.GetFrameCols()),
+			m_tile_size * (laser_sprite.GetCurrentFrameID() / laser_sprite.GetFrameCols()),
+			m_tile_size * (laser_sprite.GetCurrentFrameID() % laser_sprite.GetFrameCols()) + m_tile_size,
+			m_tile_size * (laser_sprite.GetCurrentFrameID() / laser_sprite.GetFrameCols()) + m_tile_size,
+			m_tile_size,
 			0,
 			0,
 			0,
@@ -170,8 +177,8 @@ void CWayTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserDat
 			laser_sprite.position.y + laser_sprite.anchor.y,
 			0,
 			0,
-			24,
-			24,
+			m_tile_size,
+			m_tile_size,
 			laser_sprite.anchor.x,
 			laser_sprite.anchor.y,
 			laser_sprite.scale.x,

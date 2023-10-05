@@ -1,0 +1,16 @@
+{
+	"file": "data/cancel_button_lit.png",
+	"frame": {
+		"width": 40,
+		"height": 32,
+		"cols": 4,
+		"rows": 1
+	},
+	"animations": {
+		"default": {
+			"frames": [ 0, 1, 2, 3 ],
+			"interval": 0.15,
+			"loop": true
+		}
+	}
+}

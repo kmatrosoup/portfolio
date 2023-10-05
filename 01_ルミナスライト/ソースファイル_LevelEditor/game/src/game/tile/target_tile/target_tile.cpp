@@ -1,18 +1,15 @@
 #include "target_tile.h"
 
-const float CTargetTile::m_lit_time = 1.2f;
-const int CTargetTile::m_lit_frame_num = 12;
-
 CTargetTile::CTargetTile(IGameObject* parent)
 	: ITile(parent, "TargetTile")
-	, m_LitFlag(false)
+	, m_IsLit(false)
 {
 }
 
 void CTargetTile::Initialize(DIRECTION_ID direction, COLOR_ID color)
 {
 	// ÉäÉ\Å[ÉXÇÃì«Ç›çûÇ›
-	m_Sprite.Create("data\\tile_target.png");
+	m_Sprite.Create("data\\tile_target.ass");
 	m_Direction = direction;
 	m_Color = color;
 
@@ -24,19 +21,14 @@ void CTargetTile::Initialize(DIRECTION_ID direction, COLOR_ID color)
 	case DIRECTION_ID::UP:		m_Sprite.rotation = aqua::DegToRad(270.0f);	break;
 	}
 
-	m_Sprite.rect.left = m_Sprite.GetTextureWidth() / (int)COLOR_ID::MAX * (int)m_Color;
-	m_Sprite.rect.right = m_Sprite.rect.left + m_Sprite.GetTextureWidth() / (int)COLOR_ID::MAX;
+	m_Sprite.Change((int)m_Color);
 
-	m_LitSprite.Create("data\\tile_target_lit.png");
-	m_LitSprite.rect.left = m_LitSprite.GetTextureWidth() / (int)COLOR_ID::MAX * (int)m_Color;
-	m_LitSprite.rect.right = m_LitSprite.rect.left + m_LitSprite.GetTextureWidth() / (int)COLOR_ID::MAX;
+	m_LitSprite.Create("data\\tile_target_lit.ass");
+	m_LitSprite.Change((int)m_Color);
 	m_LitSprite.rotation = m_Sprite.rotation;
 
 	m_LaserMaskTexture.Load("data\\tile_target_mask.png");
 	m_LaserDestScreen = DxLib::MakeScreen(24, 24, TRUE);
-
-	// èâä˙âªèàóù
-	m_LitTimer.Setup(m_lit_time);
 }
 
 void CTargetTile::Update()
@@ -60,29 +52,27 @@ void CTargetTile::Update()
 		m_Sprite.position.y += m_DispSize;
 		break;
 	}
-	m_Sprite.scale.x = m_DispSize / (float)m_Sprite.GetTextureWidth() * (int)COLOR_ID::MAX;
-	m_Sprite.scale.y = m_DispSize / (float)m_Sprite.GetTextureHeight();
+	m_Sprite.scale.x = m_DispSize / (float)m_Sprite.GetFrameWidth();
+	m_Sprite.scale.y = m_DispSize / (float)m_Sprite.GetFrameHeight();
 	m_LitSprite.position = m_Sprite.position;
 	m_LitSprite.scale = m_Sprite.scale;
 
 	// è∆éÀéûÇÃî≠åıèàóù
-	m_LitTimer.Update();
-	if (m_LitTimer.Finished())
-		m_LitTimer.Reset();
-
-	m_LitSprite.visible = m_LitFlag;
-	m_LitSprite.rect.top = m_LitSprite.GetTextureHeight() / m_lit_frame_num * (int)(m_lit_frame_num * m_LitTimer.GetTime() / m_lit_time);
-	m_LitSprite.rect.bottom = m_LitSprite.rect.top + m_LitSprite.GetTextureHeight() / m_lit_frame_num;
+	m_LitSprite.visible = m_IsLit;
+	m_LitSprite.Update();
 }
 
 void CTargetTile::Draw()
 {
+	m_Sprite.color = 0xffffffff;
 	m_Sprite.Draw();
 	m_LitSprite.Draw();
 }
 
-void CTargetTile::DrawLit()
+void CTargetTile::Draw_Lit()
 {
+	m_Sprite.color = 0xff000000;
+	m_Sprite.Draw();
 	m_LitSprite.Draw();
 }
 
@@ -99,16 +89,6 @@ TILE_ID CTargetTile::GetTileID() const
 	return TILE_ID::TARGET;
 }
 
-DIRECTION_ID CTargetTile::GetDirectionID() const
-{
-	return m_Direction;
-}
-
-COLOR_ID CTargetTile::GetColorID() const
-{
-	return m_Color;
-}
-
 bool CTargetTile::IsMovable() const
 {
 	return false;
@@ -119,7 +99,7 @@ std::list<SLaserData> CTargetTile::GetConvertedLaser(const SLaserData& laser) co
 	return {};
 }
 
-void CTargetTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserData& laser_data) const
+void CTargetTile::DrawLaserTrail(aqua::CAnimationSprite laser_sprite, const SLaserData& laser_data) const
 {
 	// å¸Ç´Ç™à·Ç§èÍçáÇÕï`âÊÇµÇ»Ç¢
 	if (laser_data.direction != m_Direction)
@@ -134,10 +114,10 @@ void CTargetTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaser
 		laser_sprite.GetResourceHandle(),
 		m_LaserMaskTexture.GetResourceHandle(),
 		m_LaserDestScreen,
-		laser_sprite.rect.left,
-		laser_sprite.rect.top,
-		laser_sprite.rect.right,
-		laser_sprite.rect.bottom,
+		m_tile_size * (laser_sprite.GetCurrentFrameID() % laser_sprite.GetFrameCols()),
+		m_tile_size * (laser_sprite.GetCurrentFrameID() / laser_sprite.GetFrameCols()),
+		m_tile_size * (laser_sprite.GetCurrentFrameID() % laser_sprite.GetFrameCols()) + m_tile_size,
+		m_tile_size * (laser_sprite.GetCurrentFrameID() / laser_sprite.GetFrameCols()) + m_tile_size,
 		0,
 		0,
 		0,
@@ -150,8 +130,8 @@ void CTargetTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaser
 		laser_sprite.position.y + laser_sprite.anchor.y,
 		0,
 		0,
-		24,
-		24,
+		m_tile_size,
+		m_tile_size,
 		laser_sprite.anchor.x,
 		laser_sprite.anchor.y,
 		laser_sprite.scale.x,
@@ -164,18 +144,8 @@ void CTargetTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaser
 	SetDrawBlendMode((int)aqua::ALPHABLEND::ALPHA, aqua::CColor::MAX_COLOR);
 }
 
-void CTargetTile::SetLitFlag(bool flag)
-{
-	m_LitFlag = flag;
-}
-
-bool CTargetTile::GetLitFlag() const
-{
-	return m_LitFlag;
-}
-
 void CTargetTile::IrradiateLaser(const SLaserData& laser)
 {
 	if (m_Direction == laser.direction && m_Color == laser.color)
-		m_LitFlag = true;
+		m_IsLit = true;
 }

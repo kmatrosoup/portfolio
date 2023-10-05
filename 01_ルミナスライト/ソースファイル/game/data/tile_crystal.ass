@@ -1,0 +1,31 @@
+{
+	"file": "data/tile_crystal.png",
+	"frame": {
+		"width": 24,
+		"height": 24,
+		"cols": 1,
+		"rows": 4
+	},
+	"animations": {
+		"white": {
+			"frames": [ 0 ],
+			"interval": 0.0,
+			"loop": false
+		},
+		"red": {
+			"frames": [ 1 ],
+			"interval": 0.0,
+			"loop": false
+		},
+		"green": {
+			"frames": [ 2 ],
+			"interval": 0.0,
+			"loop": false
+		},
+		"blue": {
+			"frames": [ 3 ],
+			"interval": 0.0,
+			"loop": false
+		}
+	}
+}

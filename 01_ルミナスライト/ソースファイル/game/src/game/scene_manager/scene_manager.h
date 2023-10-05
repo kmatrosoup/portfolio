@@ -14,8 +14,9 @@ public:
 	void Initialize() override;
 	void Update() override;
 	void Draw() override;
+	void Draw_Lit();
 	void Finalize() override;
 
 private:
-	IScene* m_pScene;
+	IScene* m_pScene;	// シーンオブジェクト
 };

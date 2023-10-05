@@ -22,9 +22,9 @@
 #include "..\color\color.h"
 #include "..\..\utility\utility.h"
 
-/*!
- *  @brief      aqua名前空間
- */
+ /*!
+  *  @brief      aqua名前空間
+  */
 namespace aqua
 {
     /*!
@@ -63,7 +63,7 @@ namespace aqua
         /*!
          *  @brief      コンストラクタ
          */
-        CAnimationSprite( void );
+        CAnimationSprite(void);
 
         /*!
          *  @brief      デストラクタ
@@ -75,7 +75,7 @@ namespace aqua
          *
          *  @param[in]  file_name   アニメーション用ファイル名(.ass)
          */
-        void    Create( const std::string& file_name );
+        void    Create(const std::string& file_name);
 
         /*!
          *  @brief      生成
@@ -83,7 +83,7 @@ namespace aqua
          *  @param[in]  file_name   アニメーション用ファイル名(.ass)
          *  @param[in]  anime_name  アニメーション名
          */
-        void    Create( const std::string& file_name, const std::string& anime_name );
+        void    Create(const std::string& file_name, const std::string& anime_name);
 
         /*!
          *  @brief      生成
@@ -91,53 +91,55 @@ namespace aqua
          *  @param[in]  file_name   アニメーション用ファイル名(.ass)
          *  @param[in]  anime_id    アニメーションID
          */
-        void    Create( const std::string& file_name, int anime_id );
+        void    Create(const std::string& file_name, int anime_id);
 
         /*!
          *  @brief      解放
          */
-        void    Delete( void );
+        void    Delete(void);
 
         /*!
          *  @brief      更新
          */
-        void    Update( );
+        void    Update();
 
         /*!
          *  @brief      描画
          */
-        void    Draw( void );
+        void    Draw(void);
 
         /*!
          *  @brief      アニメーションの変更
          *
          *  @param[in]  anime_name  アニメーション名
+         *  @param[in]  reset_frame フレームをリセットする
          */
-        void    Change( const std::string& anime_name );
+        void    Change(const std::string& anime_name, bool reset_frame = true);
 
         /*!
          *  @brief      アニメーションの変更
          *
          *  @param[in]  anime_id    アニメーションID
+         *  @param[in]  reset_frame フレームをリセットする
          */
-        void    Change( int anime_id );
+        void    Change(int anime_id, bool reset_frame = true);
 
         /*!
          *  @brief      アニメーションの再生
          *              カレントフレームから再生する
          */
-        void    Play( void );
+        void    Play(void);
 
         /*!
          *  @brief      アニメーションの停止
          */
-        void    Stop( void );
+        void    Stop(void);
 
         /*!
          *  @brief      アニメーションのリセット
          *              アニメーションフレームをリセットし0にする
          */
-        void    ResetAnimationFrame( void );
+        void    ResetAnimationFrame(void);
 
         /*!
          *  @brief      アニメーション終了検知
@@ -145,7 +147,28 @@ namespace aqua
          *  @retval     true    アニメーション終了
          *  @retval     false   アニメーション継続
          */
-        bool    Finished( void );
+        bool    Finished(void);
+
+        /*!
+         *  @brief      現在再生中のフレームIDを取得
+         *
+         *  @return     現在再生中のフレームID
+         */
+        int             GetCurrentFrameID(void) const;
+
+        /*!
+         *  @brief      横に並んでいるフレームの数を取得
+         *
+         *  @return     横に並んでいるフレームの数
+         */
+        int             GetFrameCols(void) const { return m_FrameCols; }
+
+        /*!
+         *  @brief      縦に並んでいるフレームの数を取得
+         *
+         *  @return     縦に並んでいるフレームの数
+         */
+        int             GetFrameRows(void) const { return m_FrameRows; }
 
         /*!
          *  @brief      現在再生しているアニメーション番号取得
@@ -159,14 +182,14 @@ namespace aqua
          *
          *  @return     アニメーション名
          */
-        std::string     GetAnimationName( void );
+        std::string     GetAnimationName(void);
 
         /*!
          *  @brief      アニメーション数の取得
          *
          *  @return     アニメーション数
          */
-        int             GetAnimationCount( void ) const;
+        int             GetAnimationCount(void) const;
 
         /*!
          *  @brief      テクスチャの幅取得
@@ -181,19 +204,19 @@ namespace aqua
          *  @return     テクスチャの高さ
          */
         int             GetTextureHeight(void) const { return m_Texture.GetHeight(); }
- 
-       /*!
-        *  @brief      フレームの幅取得
-        *
-        *  @return     フレームの幅
-        */
+
+        /*!
+         *  @brief      フレームの幅取得
+         *
+         *  @return     フレームの幅
+         */
         int             GetFrameWidth(void) const { return m_FrameWidth; }
 
-       /*!
-        *  @brief      フレームの高さ取得
-        *
-        *  @return     フレームの高さ
-        */
+        /*!
+         *  @brief      フレームの高さ取得
+         *
+         *  @return     フレームの高さ
+         */
         int             GetFrameHeight(void) const { return m_FrameHeight; }
 
         /*!
@@ -237,7 +260,7 @@ namespace aqua
          *
          *  @param[in]  file_name   アニメーション用ファイル名(.ass)
          */
-        void    LoadASS( const std::string& file_name );
+        void    LoadASS(const std::string& file_name);
 
         /*!
          *  @brief      アニメーション名をアニメーションIDに変換
@@ -246,7 +269,7 @@ namespace aqua
          *
          *  @return     アニメーションID
          */
-        int     ConvertAnimationNameToAnimationID( const std::string& anime_name );
+        int     ConvertAnimationNameToAnimationID(const std::string& anime_name);
 
         /*!
          *  @brief      アニメーションデータ構造体
@@ -299,7 +322,7 @@ namespace aqua
         };
 
         //! キー名
-        static const char*          m_key_names[(int)ASS_KEY::MAX];
+        static const char* m_key_names[(int)ASS_KEY::MAX];
         //! 1秒
         static const float          m_second;
         //! ダミーID

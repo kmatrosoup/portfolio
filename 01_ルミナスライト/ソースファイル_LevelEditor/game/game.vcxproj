@@ -100,8 +100,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\game\back_ground\back_ground.cpp" />
     <ClCompile Include="src\game\effect_manager\effect\effect.cpp" />
-    <ClCompile Include="src\game\effect_manager\effect\line_effect\line_effect.cpp" />
     <ClCompile Include="src\game\effect_manager\effect\particle_effect\particle_effect.cpp" />
     <ClCompile Include="src\game\effect_manager\effect_manager.cpp" />
     <ClCompile Include="src\game\field\field.cpp" />
@@ -119,10 +119,10 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\game\back_ground\back_ground.h" />
     <ClInclude Include="src\game\color_id\color_id.h" />
     <ClInclude Include="src\game\direction_id\direction_id.h" />
     <ClInclude Include="src\game\effect_manager\effect\effect.h" />
-    <ClInclude Include="src\game\effect_manager\effect\line_effect\line_effect.h" />
     <ClInclude Include="src\game\effect_manager\effect\particle_effect\particle_effect.h" />
     <ClInclude Include="src\game\effect_manager\effect_manager.h" />
     <ClInclude Include="src\game\field\field.h" />

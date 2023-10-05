@@ -10,6 +10,6 @@ struct SLaserData
 		, color(color)
 	{}
 
-	DIRECTION_ID direction;
-	COLOR_ID color;
+	DIRECTION_ID direction;	// •ûŒüID
+	COLOR_ID color;			// FID
 };

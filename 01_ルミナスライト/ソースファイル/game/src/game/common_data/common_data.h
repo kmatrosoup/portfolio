@@ -9,21 +9,6 @@ public:
 	CCommonData(IGameObject* parent);
 	~CCommonData() override = default;
 
-	const std::string& GetSaveDataFileName() const;
-	void SetBGParamR(float param);
-	void SetBGParamG(float param);
-	void SetBGParamB(float param);
-	float GetBGParamR() const;
-	float GetBGParamG() const;
-	float GetBGParamB() const;
-	void SetSelectedLevel(int level);
-	int GetSelectedLevel() const;
-
-private:
-	static const std::string m_savedata_filename;	// セーブデータのファイル名
-
-	float m_BGParam_R;		// 背景のR値( 0.0f～1.0f )
-	float m_BGParam_G;		// 背景のG値( 0.0f～1.0f )
-	float m_BGParam_B;		// 背景のB値( 0.0f～1.0f )
-	int m_SelectedLevel;	// 選択レベル
+public:
+	int selectedLevel;	// 選択レベル
 };

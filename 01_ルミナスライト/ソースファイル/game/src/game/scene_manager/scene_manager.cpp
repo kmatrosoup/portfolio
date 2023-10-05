@@ -1,4 +1,5 @@
 #include "scene_manager.h"
+#include "scene/scene.h"
 
 #include "scene/title/title.h"
 #include "scene/level_select/level_select.h"
@@ -71,6 +72,11 @@ void CSceneManager::Update()
 void CSceneManager::Draw()
 {
 	m_pScene->Draw();
+}
+
+void CSceneManager::Draw_Lit()
+{
+	m_pScene->Draw_Lit();
 }
 
 void CSceneManager::Finalize()

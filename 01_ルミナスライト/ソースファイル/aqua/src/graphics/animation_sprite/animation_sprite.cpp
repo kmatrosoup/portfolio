@@ -209,9 +209,9 @@ Draw( void )
  */
 void
 aqua::CAnimationSprite::
-Change( const std::string& anime_name )
+Change( const std::string& anime_name, bool reset_frame )
 {
-    Change( ConvertAnimationNameToAnimationID( anime_name ) );
+    Change( ConvertAnimationNameToAnimationID( anime_name ), reset_frame );
 }
 
 /*
@@ -219,14 +219,15 @@ Change( const std::string& anime_name )
  */
 void
 aqua::CAnimationSprite::
-Change( int anime_id )
+Change( int anime_id, bool reset_frame )
 {
     // アニメーションIDが同じなら変更しない
     if( m_CurrentAnimeID == anime_id )
         return;
 
     m_CurrentAnimeID = anime_id;
-    m_CurrentFrame   = 0.0f;
+    if ( reset_frame )
+        m_CurrentFrame   = 0.0f;
 
     // アニメーションリストがあれば再生FPSを算出
     if( m_AnimationList.size( ) )
@@ -285,6 +286,19 @@ Finished( void )
         return false;
 
     return true;
+}
+
+int aqua::CAnimationSprite::GetCurrentFrameID(void) const
+{
+    // カレントフレームを取得
+    int index = (int)m_CurrentFrame;
+
+    // 最大フレームを超えていたら制限
+    if (index >= (int)m_AnimationList[m_CurrentAnimeID].frames.size())
+        index = (int)m_AnimationList[m_CurrentAnimeID].frames.size() - 1;
+
+    // 指定されたアニメーションから描画範囲を算出
+    return m_AnimationList[m_CurrentAnimeID].frames[index];
 }
 
 /*

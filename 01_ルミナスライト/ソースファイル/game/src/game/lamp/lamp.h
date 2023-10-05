@@ -2,8 +2,6 @@
 
 #include "aqua.h"
 
-class CGlowScreen;
-
 class CLamp : public aqua::IGameObject
 {
 public:
@@ -13,14 +11,13 @@ public:
 	void Initialize(float pos_x, float anchor_y, bool lit_flag);
 	void Update() override;
 	void Draw() override;
+	void Draw_Lit();
 	void Finalize() override;
 
 private:
-	CGlowScreen* m_pGlowScreen;
+	float m_PositionX;		// X座標
+	float m_AngleVelocity;	// 角速度
 
-	float m_PositionX;
-	float m_AngleVelocity;
-
-	aqua::CSprite m_BaseSprite;
-	aqua::CSprite m_LitSprite;
+	aqua::CSprite m_BaseSprite;	// フレームの画像
+	aqua::CSprite m_LitSprite;	// 発光部分の画像
 };

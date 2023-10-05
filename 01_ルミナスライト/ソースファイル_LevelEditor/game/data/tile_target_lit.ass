@@ -1,0 +1,31 @@
+{
+	"file": "data/tile_target_lit.png",
+	"frame": {
+		"width": 24,
+		"height": 24,
+		"cols": 12,
+		"rows": 4
+	},
+	"animations": {
+		"white": {
+			"frames": [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ],
+			"interval": 0.1,
+			"loop": true
+		},
+		"red": {
+			"frames": [ 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 ],
+			"interval": 0.1,
+			"loop": true
+		},
+		"green": {
+			"frames": [ 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35 ],
+			"interval": 0.1,
+			"loop": true
+		},
+		"blue": {
+			"frames": [ 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47 ],
+			"interval": 0.1,
+			"loop": true
+		}
+	}
+}

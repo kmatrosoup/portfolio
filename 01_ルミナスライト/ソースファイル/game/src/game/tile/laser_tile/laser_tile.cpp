@@ -37,6 +37,13 @@ void CLaserTile::Update()
 
 void CLaserTile::Draw()
 {
+	m_Sprite.color = 0xffffffff;
+	m_Sprite.Draw();
+}
+
+void CLaserTile::Draw_Lit()
+{
+	m_Sprite.color = 0xff000000;
 	m_Sprite.Draw();
 }
 
@@ -66,7 +73,7 @@ std::list<SLaserData> CLaserTile::GetConvertedLaser(const SLaserData& laser) con
 	return {};
 }
 
-void CLaserTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserData& laser_data) const
+void CLaserTile::DrawLaserTrail(aqua::CAnimationSprite laser_sprite, const SLaserData& laser_data) const
 {
 }
 

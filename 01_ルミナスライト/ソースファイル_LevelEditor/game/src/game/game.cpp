@@ -1,4 +1,5 @@
 #include "game.h"
+#include "back_ground/back_ground.h"
 #include "field/field.h"
 #include "sound_manager/sound_manager.h"
 #include "effect_manager/effect_manager.h"
@@ -13,6 +14,8 @@ const float	CGame::m_max_create_particle_time = 0.08f;
 CGame::
 CGame(aqua::IGameObject* parent)
 	: aqua::IGameObject(parent, "Game")
+	, m_pBackGround(nullptr)
+	, m_pField(nullptr)
 	, m_pSoundManager(nullptr)
 	, m_pEffectManager(nullptr)
 	, m_pGlowScreen(nullptr)
@@ -26,15 +29,26 @@ void
 CGame::
 Initialize(void)
 {
-	aqua::CreateGameObject<CField>(this);
+	// ゲームオブジェクトの生成
+	m_pBackGround = aqua::CreateGameObject<CBackGround>(this);
+	m_pField = aqua::CreateGameObject<CField>(this);
 	m_pSoundManager = aqua::CreateGameObject<CSoundManager>(this);
 	m_pEffectManager = aqua::CreateGameObject<CEffectManager>(this);
 	m_pGlowScreen = aqua::CreateGameObject<CGlowScreen>(this);
 
+	// ゲームオブジェクトの初期化
 	IGameObject::Initialize();
 
-	m_pSoundManager->Play(SOUND_ID::BGM);
+	// 背景色の設定
+	m_pBackGround->paramR = 0.10f;
+	m_pBackGround->paramG = 0.15f;
+	m_pBackGround->paramB = 0.20f;
+
+	// タイマーのセットアップ
 	m_CreateParticleTimer.Setup(m_min_create_particle_time + (m_max_create_particle_time - m_min_create_particle_time) * aqua::Rand(1000) / 1000.0f);
+
+	// BGMの再生
+	m_pSoundManager->Play(SOUND_ID::BGM);
 }
 
 /*
@@ -44,8 +58,6 @@ void
 CGame::
 Update(void)
 {
-	m_pGlowScreen->Clear();
-
 	// パーティクル生成の更新
 	m_CreateParticleTimer.Update();
 	if (m_CreateParticleTimer.Finished())
@@ -54,13 +66,7 @@ Update(void)
 		m_CreateParticleTimer.Setup(m_min_create_particle_time + (m_max_create_particle_time - m_min_create_particle_time) * aqua::Rand(1000) / 1000.0f);
 	}
 
-	// グロー効果付与の描画
-	m_pGlowScreen->Begin();
-	{
-		m_pEffectManager->DrawEffects();
-	}
-	m_pGlowScreen->End();
-
+	// ゲームオブジェクトの更新
 	IGameObject::Update();
 }
 
@@ -71,8 +77,13 @@ void
 CGame::
 Draw(void)
 {
-	aqua::Clear(0xff102030);
+	// 発光スクリーンへの書き込み
+	m_pGlowScreen->Clear();
+	m_pGlowScreen->Begin();
+	m_pField->Draw_Lit();
+	m_pEffectManager->Draw_Lit();
+	m_pGlowScreen->End();
 
+	// ゲームオブジェクトの描画
 	IGameObject::Draw();
-	m_pEffectManager->DrawEffects();
 }

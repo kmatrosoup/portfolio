@@ -10,11 +10,17 @@ public:
 	IScene(IGameObject* parent, const std::string& name);
 	virtual ~IScene() override = default;
 
-	SCENE_ID GetNextScene() const;
+	virtual void Initialize() override = 0;
+	virtual void Update() override = 0;
+	virtual void Draw() override = 0;
+	virtual void Draw_Lit() = 0;
+	virtual void Finalize() override = 0;
+
+	SCENE_ID GetNextScene() const;	// 次のシーンを取得
 
 protected:
-	void ChangeScene(SCENE_ID id);
+	void ChangeScene(SCENE_ID id);	// シーン切り替え
 
 private:
-	SCENE_ID m_NextSceneID;
+	SCENE_ID m_NextSceneID;	// 次のシーン
 };

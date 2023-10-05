@@ -8,12 +8,10 @@ public:
 	CEffectManager(aqua::IGameObject* parent);
 	~CEffectManager() override = default;
 
-	void Draw() override;
+	void Draw_Lit();
 
-	void CreateEffect_RandomParticle();
-	void CreateEffect_RandomLine();
-	void ClearEffects();
-	void DrawEffects() const;
+	void CreateEffect_RandomParticle();	// 粒子エフェクトを生成
+	void ClearEffects();				// 全エフェクトを削除
 
 private:
 };

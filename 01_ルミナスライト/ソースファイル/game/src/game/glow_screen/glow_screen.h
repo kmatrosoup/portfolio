@@ -17,10 +17,10 @@ public:
 	void Clear();		// スクリーンのクリア
 
 private:
-	static constexpr int m_glow_sprite_num = 6;
+	static constexpr int m_glow_sprite_num = 6;	// 発光用画像の枚数
 
-	aqua::CSurface m_SourceSurface;
-	aqua::CSurface m_DownScaleSurface;
-	aqua::CSprite m_SourceSprite;
-	aqua::CSprite m_GlowSprite[m_glow_sprite_num];
+	aqua::CSurface m_SourceSurface;					// 発光用元画像スクリーン
+	aqua::CSurface m_DownScaleSurface;				// 発光用低解像スクリーン
+	aqua::CSprite m_SourceSprite;					// 発光用元画像
+	aqua::CSprite m_GlowSprite[m_glow_sprite_num];	// 発光用結果画像
 };

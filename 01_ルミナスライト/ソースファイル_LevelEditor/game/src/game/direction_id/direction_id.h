@@ -2,10 +2,10 @@
 
 enum class DIRECTION_ID
 {
-	RIGHT,
-	DOWN,
-	LEFT,
-	UP,
+	RIGHT,	// âE
+	DOWN,	// â∫
+	LEFT,	// ç∂
+	UP,		// è„
 
 	MAX
 };

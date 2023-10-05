@@ -7,7 +7,6 @@
 class ITile;
 class CCommonData;
 class CSoundManager;
-class CGlowScreen;
 
 class CField :
 	public aqua::IGameObject
@@ -19,44 +18,48 @@ public:
 	void Initialize() override;
 	void Update() override;
 	void Draw() override;
+	void Draw_Lit();
 	void Finalize() override;
 
-	TILE_ID GetTileID(const aqua::CPoint& locate) const;
-	bool CheckSuccess() const;
-	float GetTileSize() const;
-	void SetTargetEdgeSpace(float space);
-	void SetControlFlag(bool flag);
+	TILE_ID GetTileID(const aqua::CPoint& locate) const;	// タイルIDを取得
+	bool IsSuccess() const;									// 成功判定
+	float GetTileSize() const;								// タイルの大きさを取得
+	void SetTargetEdgeSpace(float space);					// 画面端余白の大きさを設定
+	void SetControlFlag(bool flag);							// 操作可能フラグを設定
 
 private:
-	void LoadMapData(const std::string& file_name);
+	void LoadMapData(const std::string& file_name);	// レベル情報を読み込む
+
+	void Update_01_TileDrawSettings();		// タイルの描画設定を更新
+	void Update_02_MovementTile();			// タイルの移動処理
+	void Update_03_Tiles();					// タイルの更新
+	void Update_04_CalcLaser();				// レーザーの軌道計算
+	void Update_05_CheckSuccess();			// 成功判定
+	void Update_06_CursorDrawSettings();	// カーソルの描画設定を更新
+	void Update_07_Animations();			// 各種アニメーションの更新
 
 private:
-	static const float m_first_edge_space;
-	static const float m_laser_trail_time;
-	static const int m_laser_trail_frame_num;
-	static const std::map<std::string, DIRECTION_ID> m_direction_table;
-	static const std::map<std::string, COLOR_ID> m_color_table;
+	static const float m_first_edge_space;								// 開始時の画面端余白の大きさ
+	static const std::map<std::string, DIRECTION_ID> m_direction_table;	// 文字列に対応する方向ID
+	static const std::map<std::string, COLOR_ID> m_color_table;			// 文字列に対応する色ID
 
-	CCommonData* m_pCommonData;
-	CSoundManager* m_pSoundManager;
-	CGlowScreen* m_pGlowScreen;
-	int m_FieldWidth;
-	int m_FieldHeight;
-	std::vector<std::vector<ITile*>> m_pTileLocate;
-	float m_TileSize;
-	float m_EdgeSpace;
-	float m_TargetEdgeSpace;
-	std::list<std::pair<aqua::CPoint, SLaserData>> m_LaserChain;
-	aqua::CPoint m_CursorLocate;
-	ITile* m_pCursorTile;
-	aqua::CTimer m_LaserTrailTimer;
-	bool m_SuccessFlag;
-	bool m_CanControlFlag;
+	CCommonData* m_pCommonData;		// 共有データオブジェクト
+	CSoundManager* m_pSoundManager;	// サウンド管理オブジェクト
 
-	aqua::CSprite m_LaserTrailSprite;
-	aqua::CSprite m_OutAreaTileSprite;
-	aqua::CSurface m_GlowMaskSurface;
-	aqua::CSprite m_GlowMaskSprite;
-	aqua::CBoxPrimitive m_CursorHorizontalBox;
-	aqua::CBoxPrimitive m_CursorVerticalBox;
+	bool m_IsSuccess;												// 成功判定
+	bool m_CanControl;												// 操作可能判定
+	int m_TileNumX;													// 横タイル数
+	int m_TileNumY;													// 縦タイル数
+	float m_DispTileSize;											// 表示するタイルの大きさ
+	float m_EdgeSpace;												// 画面端余白の大きさ
+	float m_TargetEdgeSpace;										// 最終的な画面端余白の大きさ
+	aqua::CPoint m_CursorLocate;									// カーソル位置
+	ITile* m_pCursoredTile;											// マウスオーバー中のタイル
+	std::vector<std::vector<ITile*>> m_pTiles;						// 各タイルのデータ
+	std::list<std::pair<aqua::CPoint, SLaserData>> m_LaserChain;	// レーザーの軌跡データ
+
+	aqua::CAnimationSprite m_LaserTrailSprite;	// レーザーの軌跡画像
+	aqua::CSprite m_OutAreaTileSprite;			// 範囲外のタイル画像
+	aqua::CBoxPrimitive m_CursorHorizontalBox;	// マウスオーバー位置の横強調線
+	aqua::CBoxPrimitive m_CursorVerticalBox;	// マウスオーバー位置の縦強調線
 };

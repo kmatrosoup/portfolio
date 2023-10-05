@@ -2,10 +2,10 @@
 
 enum class COLOR_ID
 {
-	WHITE,
-	RED,
-	GREEN,
-	BLUE,
+	WHITE,	// îí
+	RED,	// ê‘
+	GREEN,	// óŒ
+	BLUE,	// ê¬
 
 	MAX
 };

@@ -30,7 +30,7 @@ void CGlowScreen::Initialize()
 void CGlowScreen::Draw()
 {
 	m_DownScaleSurface.Begin();
-	aqua::Clear(0x00000000);
+	aqua::Clear(0xff000000);
 	m_SourceSprite.Draw();
 	m_DownScaleSurface.End();
 
@@ -60,6 +60,6 @@ void CGlowScreen::End()
 void CGlowScreen::Clear()
 {
 	m_SourceSurface.Begin();
-	aqua::Clear(0x00000000);
+	aqua::Clear(0xff000000);
 	m_SourceSurface.End();
 }

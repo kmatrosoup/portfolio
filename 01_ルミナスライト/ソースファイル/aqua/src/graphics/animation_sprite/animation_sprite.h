@@ -112,15 +112,17 @@ namespace aqua
          *  @brief      アニメーションの変更
          *
          *  @param[in]  anime_name  アニメーション名
+         *  @param[in]  reset_frame フレームをリセットする
          */
-        void    Change( const std::string& anime_name );
+        void    Change( const std::string& anime_name, bool reset_frame = true );
 
         /*!
          *  @brief      アニメーションの変更
          *
          *  @param[in]  anime_id    アニメーションID
+         *  @param[in]  reset_frame フレームをリセットする
          */
-        void    Change( int anime_id );
+        void    Change( int anime_id, bool reset_frame = true );
 
         /*!
          *  @brief      アニメーションの再生
@@ -146,6 +148,27 @@ namespace aqua
          *  @retval     false   アニメーション継続
          */
         bool    Finished( void );
+
+        /*!
+         *  @brief      現在再生中のフレームIDを取得
+         *
+         *  @return     現在再生中のフレームID
+         */
+        int             GetCurrentFrameID(void) const;
+
+        /*!
+         *  @brief      横に並んでいるフレームの数を取得
+         *
+         *  @return     横に並んでいるフレームの数
+         */
+        int             GetFrameCols(void) const { return m_FrameCols; }
+
+        /*!
+         *  @brief      縦に並んでいるフレームの数を取得
+         *
+         *  @return     縦に並んでいるフレームの数
+         */
+        int             GetFrameRows(void) const { return m_FrameRows; }
 
         /*!
          *  @brief      現在再生しているアニメーション番号取得

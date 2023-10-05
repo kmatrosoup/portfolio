@@ -13,31 +13,28 @@ public:
 	void Initialize(DIRECTION_ID direction, COLOR_ID color);
 	void Update() override;
 	void Draw() override;
-	void DrawLit();
+	void Draw_Lit() override;
 	void Finalize() override;
 
-	TILE_ID GetTileID() const override;
-	DIRECTION_ID GetDirectionID() const;
-	COLOR_ID GetColorID() const;
-	bool IsMovable() const override;
-	std::list<SLaserData> GetConvertedLaser(const SLaserData& laser) const override;
-	void DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserData& laser_data) const override;
+	TILE_ID GetTileID() const override;																		// タイルIDを取得
+	bool IsMovable() const override;																		// 移動可能か判定
+	std::list<SLaserData> GetConvertedLaser(const SLaserData& laser) const override;						// 入力光に対する出力光を取得
+	void DrawLaserTrail(aqua::CAnimationSprite laser_sprite, const SLaserData& laser_data) const override;	// 同じ位置のレーザーを描画
 
-	void SetLitFlag(bool flag);
-	bool GetLitFlag() const;
-	void IrradiateLaser(const SLaserData& laser);
+	void IrradiateLaser(const SLaserData& laser);	// 
+	bool IsLit() const { return m_IsLit; }			// 発光状態を判定
+	void SetLitFlag(bool flag) { m_IsLit = flag; }	// 発光状態を設定
+
+	DIRECTION_ID GetDirectionID() const { return m_Direction; }	// 方向IDを取得
+	COLOR_ID GetColorID() const { return m_Color; }				// 色IDを取得
 
 private:
-	static const float m_lit_time;
-	static const int m_lit_frame_num;
+	DIRECTION_ID m_Direction;	// 方向ID
+	COLOR_ID m_Color;			// 色ID
+	bool m_IsLit;				// 発光状態
 
-	DIRECTION_ID m_Direction;
-	COLOR_ID m_Color;
-	bool m_LitFlag;
-	aqua::CTimer m_LitTimer;
-
-	aqua::CSprite m_Sprite;
-	aqua::CSprite m_LitSprite;
-	aqua::CTexture m_LaserMaskTexture;
-	int m_LaserDestScreen;
+	aqua::CAnimationSprite m_Sprite;	// タイル画像
+	aqua::CAnimationSprite m_LitSprite;	// 発光用アニメーション画像
+	aqua::CTexture m_LaserMaskTexture;	// マスクテクスチャ
+	int m_LaserDestScreen;				// フィルター後のレーザースクリーン
 };

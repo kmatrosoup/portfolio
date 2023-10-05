@@ -49,7 +49,19 @@ void CGlassTile::Draw()
 {
 	m_Sprite.Draw();
 	for (int i = 0; i < 4; ++i)
+	{
+		m_PartSprite[i].color = 0xffffffff;
 		m_PartSprite[i].Draw();
+	}
+}
+
+void CGlassTile::Draw_Lit()
+{
+	for (int i = 0; i < 4; ++i)
+	{
+		m_PartSprite[i].color = 0xff000000;
+		m_PartSprite[i].Draw();
+	}
 }
 
 void CGlassTile::Finalize()
@@ -74,7 +86,7 @@ std::list<SLaserData> CGlassTile::GetConvertedLaser(const SLaserData& laser) con
 	return { laser };
 }
 
-void CGlassTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserData& laser_data) const
+void CGlassTile::DrawLaserTrail(aqua::CAnimationSprite laser_sprite, const SLaserData& laser_data) const
 {
 	// ï`âÊÉÇÅ[ÉhÇÃê›íË
 	DxLib::SetDrawBlendMode((int)laser_sprite.blend_mode, laser_sprite.color.alpha);
@@ -84,10 +96,10 @@ void CGlassTile::DrawLaserTrail(const aqua::CSprite& laser_sprite, const SLaserD
 	DxLib::DrawRectRotaGraph3F(
 		laser_sprite.position.x + laser_sprite.anchor.x,
 		laser_sprite.position.y + laser_sprite.anchor.y,
-		laser_sprite.rect.left,
-		laser_sprite.rect.top,
-		laser_sprite.rect.right - laser_sprite.rect.left,
-		laser_sprite.rect.bottom - laser_sprite.rect.top,
+		m_tile_size * (laser_sprite.GetCurrentFrameID() % laser_sprite.GetFrameCols()),
+		m_tile_size * (laser_sprite.GetCurrentFrameID() / laser_sprite.GetFrameCols()),
+		m_tile_size,
+		m_tile_size,
 		laser_sprite.anchor.x,
 		laser_sprite.anchor.y,
 		laser_sprite.scale.x,

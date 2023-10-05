@@ -1,16 +1,15 @@
 #include "game_main.h"
 #include "../../../common_data/common_data.h"
-#include "../../../field/field.h"
+#include "../../../back_ground/back_ground.h"
+#include "../../../fade_screen/fade_screen.h"
 #include "../../../effect_manager/effect_manager.h"
 #include "../../../sound_manager/sound_manager.h"
-#include "../../../glow_screen/glow_screen.h"
+#include "../../../field/field.h"
 #include <fstream>
 
 const float				CGameMain::m_button_click_time = 0.4f;
 const aqua::CVector2	CGameMain::m_cancel_button_position = aqua::CVector2(40.0f, 40.0f);
 const aqua::CVector2	CGameMain::m_cancel_button_size = aqua::CVector2(120.0f, 96.0f);
-const int				CGameMain::m_cancel_button_frame_num = 4;
-const float				CGameMain::m_cancel_button_animation_time = 0.6f;
 constexpr int			CGameMain::m_typing_num;
 const float				CGameMain::m_successed_field_edge_space = 160.0f;
 const float				CGameMain::m_success_time = 2.0f;
@@ -19,19 +18,19 @@ const float				CGameMain::m_min_typing_interval = 0.04f;
 const float				CGameMain::m_max_typing_interval = 0.16f;
 const float				CGameMain::m_min_create_particle_time = 0.02f;
 const float				CGameMain::m_max_create_particle_time = 0.08f;
-const float				CGameMain::m_change_scene_time = 0.4f;
+const std::string		CGameMain::m_save_data_file = "data\\savedata.txt";
 
 CGameMain::CGameMain(IGameObject* parent)
 	: IScene(parent, "GameMain")
 	, m_pCommonData(nullptr)
-	, m_pField(nullptr)
+	, m_pBackGround(nullptr)
+	, m_pFadeScreen(nullptr)
 	, m_pEffectManager(nullptr)
 	, m_pSoundManager(nullptr)
-	, m_pGlowScreen(nullptr)
+	, m_pField(nullptr)
 	, m_State(STATE_ID::START)
-	, m_CancelButtonCursorFlag(false)
 	, m_TypingCount(0)
-	, m_ChangeSceneFlag(false)
+	, m_IsOverCancelButton(false)
 {
 }
 
@@ -39,23 +38,24 @@ void CGameMain::Initialize()
 {
 	// ゲームオブジェクトの取得
 	m_pCommonData = (CCommonData*)aqua::FindGameObject("CommonData");
+	m_pBackGround = (CBackGround*)aqua::FindGameObject("BackGround");
+	m_pFadeScreen = (CFadeScreen*)aqua::FindGameObject("FadeScreen");
 	m_pEffectManager = (CEffectManager*)aqua::FindGameObject("EffectManager");
 	m_pSoundManager = (CSoundManager*)aqua::FindGameObject("SoundManager");
-	m_pGlowScreen = (CGlowScreen*)aqua::FindGameObject("GlowScreen");
 
 	// ゲームオブジェクトの生成
 	m_pField = aqua::CreateGameObject<CField>(this);
-	IGameObject::Initialize();
+	m_pField->Initialize();
 
 	// リソースの読み込み
 	m_CancelButtonSprite.Create("data\\cancel_button.png");
 	m_CancelButtonSprite.position = m_cancel_button_position;
 	m_CancelButtonSprite.scale.x = m_cancel_button_size.x / m_CancelButtonSprite.GetTextureWidth();
 	m_CancelButtonSprite.scale.y = m_cancel_button_size.y / m_CancelButtonSprite.GetTextureHeight();
-	m_CancelButtonLitSprite.Create("data\\cancel_button_lit.png");
+	m_CancelButtonLitSprite.Create("data\\cancel_button_lit.ass");
 	m_CancelButtonLitSprite.position = m_cancel_button_position;
-	m_CancelButtonLitSprite.scale.x = m_cancel_button_size.x / m_CancelButtonLitSprite.GetTextureWidth();
-	m_CancelButtonLitSprite.scale.y = m_cancel_button_size.y / m_CancelButtonLitSprite.GetTextureHeight() * m_cancel_button_frame_num;
+	m_CancelButtonLitSprite.scale.x = m_cancel_button_size.x / m_CancelButtonLitSprite.GetFrameWidth();
+	m_CancelButtonLitSprite.scale.y = m_cancel_button_size.y / m_CancelButtonLitSprite.GetFrameHeight();
 	m_CancelButtonFrameSprite.Create("data\\cancel_button_frame.png");
 	m_CancelButtonFrameSprite.position = m_cancel_button_position;
 	m_CancelButtonFrameSprite.scale.x = m_cancel_button_size.x / m_CancelButtonFrameSprite.GetTextureWidth();
@@ -92,24 +92,18 @@ void CGameMain::Initialize()
 	m_SuccessBarSprite.scale.y = 6.0f;
 	m_SuccessBarSprite.visible = false;
 
-	m_ChangeSceneEffectSprite.Create("data\\scene_change_effect.png");
-	m_ChangeSceneEffectSprite.scale = aqua::CVector2::ONE * 40.0f;
-	m_ChangeSceneEffectSurface.Create((int)aqua::GetWindowWidth(), (int)aqua::GetWindowHeight(), true);
-	m_ChangeSceneEffectSprite_Dest.Create(m_ChangeSceneEffectSurface);
-
 	// 初期化処理
 	m_ButtonClickTimer.Setup(m_button_click_time);
-	m_CancelButtonTimer.Setup(m_cancel_button_animation_time);
 	m_SuccessTimer.Setup(m_success_time);
 	m_TypingTimer.Setup(m_typing_wait_time);
 	m_CreateParticleTimer.Setup(m_min_create_particle_time + (m_max_create_particle_time - m_min_create_particle_time) * aqua::Rand(1000) / 1000.0f);
-	m_ChangeSceneInTimer.Setup(m_change_scene_time);
-	m_ChangeSceneOutTimer.Setup(m_change_scene_time);
+	m_pFadeScreen->SetFade(false);
 }
 
 void CGameMain::Update()
 {
-	IGameObject::Update();
+	// フィールドの更新
+	m_pField->Update();
 
 	// 状態に応じて処理の分岐
 	switch (m_State)
@@ -122,26 +116,24 @@ void CGameMain::Update()
 		m_ButtonClickTimer.Update();
 		m_CancelButtonEffectSprite.color.alpha = (unsigned char)(max(1.0f - m_ButtonClickTimer.GetTime(), 0.0f) * 255.0f);
 		if (m_ButtonClickTimer.Finished())
-		{
-			m_ChangeSceneFlag = true;
-		}
+			m_pFadeScreen->SetFade(true);
 		break;
 
 	case STATE_ID::GAMEPLAY:
 	{
 		// キャンセルボタン判定
-		bool prev_cursor = m_CancelButtonCursorFlag;
+		bool prev_cursor = m_IsOverCancelButton;
 		aqua::CVector2 mpos = aqua::mouse::GetCursorPos();
-		m_CancelButtonCursorFlag = (
+		m_IsOverCancelButton = (
 			mpos.x >= m_cancel_button_position.x &&
 			mpos.y >= m_cancel_button_position.y &&
 			mpos.x < m_cancel_button_position.x + m_cancel_button_size.x &&
 			mpos.y < m_cancel_button_position.y + m_cancel_button_size.y);
-		if (m_CancelButtonCursorFlag && !prev_cursor)
+		if (m_IsOverCancelButton && !prev_cursor)
 		{
 			m_pSoundManager->Play(SOUND_ID::BUTTON_CURSOR_SE);
 		}
-		if (m_CancelButtonCursorFlag && aqua::mouse::Trigger(aqua::mouse::BUTTON_ID::LEFT))
+		if (m_IsOverCancelButton && aqua::mouse::Trigger(aqua::mouse::BUTTON_ID::LEFT))
 		{
 			m_State = STATE_ID::CANCEL;
 			m_CancelButtonEffectSprite.visible = true;
@@ -150,10 +142,10 @@ void CGameMain::Update()
 		}
 
 		// 成功判定
-		if (m_pField->CheckSuccess())
+		if (m_pField->IsSuccess())
 		{
 			SaveClearLevel();
-			m_CancelButtonCursorFlag = false;
+			m_IsOverCancelButton = false;
 			m_SuccessBarSprite.position = m_SuccessTextSprite[0].position;
 			m_SuccessBarSprite.visible = true;
 			m_pField->SetTargetEdgeSpace(m_successed_field_edge_space);
@@ -189,46 +181,21 @@ void CGameMain::Update()
 
 		m_SuccessTimer.Update();
 		if (m_SuccessTimer.Finished())
-		{
-			m_ChangeSceneFlag = true;
-		}
+			m_pFadeScreen->SetFade(true);
 		break;
 	}
 
 	// キャンセルボタンの更新
-	m_pField->SetControlFlag(!m_CancelButtonCursorFlag);
-	m_CancelButtonFrameSprite.visible = m_CancelButtonCursorFlag;
-	if (m_CancelButtonCursorFlag)
-	{
-		m_CancelButtonTimer.Update();
-		if (m_CancelButtonTimer.Finished())
-			m_CancelButtonTimer.Reset();
-	}
+	m_pField->SetControlFlag(!m_IsOverCancelButton);
+	m_CancelButtonFrameSprite.visible = m_IsOverCancelButton;
+	if (m_IsOverCancelButton)
+		m_CancelButtonLitSprite.Update();
 	else
-		m_CancelButtonTimer.Reset();
-	m_CancelButtonLitSprite.rect.top = (int)(m_CancelButtonTimer.GetTime() / m_cancel_button_animation_time * m_cancel_button_frame_num) * (m_CancelButtonLitSprite.GetTextureHeight() / m_cancel_button_frame_num);
-	m_CancelButtonLitSprite.rect.bottom = m_CancelButtonLitSprite.rect.top + m_CancelButtonLitSprite.GetTextureHeight() / m_cancel_button_frame_num;
+		m_CancelButtonLitSprite.ResetAnimationFrame();
 
-	// シーンインタイマーの更新
-	if (!m_ChangeSceneInTimer.Finished())
-	{
-		m_ChangeSceneInTimer.Update();
-		if (m_ChangeSceneInTimer.Finished())
-			m_ChangeSceneInTimer.SetTime(m_change_scene_time);
-	}
-
-	// シーンアウトタイマーの更新
-	if (m_ChangeSceneFlag)
-	{
-		m_ChangeSceneOutTimer.Update();
-		if (m_ChangeSceneOutTimer.Finished())
-			m_ChangeSceneOutTimer.SetTime(m_change_scene_time);
-
-		if (m_ChangeSceneOutTimer.Finished())
-		{
-			ChangeScene(SCENE_ID::LEVEL_SELECT);
-		}
-	}
+	// シーン切り替え処理
+	if (m_pFadeScreen->IsFinish())
+		ChangeScene(SCENE_ID::LEVEL_SELECT);
 
 	// パーティクル生成の更新
 	m_CreateParticleTimer.Update();
@@ -238,58 +205,25 @@ void CGameMain::Update()
 		m_CreateParticleTimer.Setup(m_min_create_particle_time + (m_max_create_particle_time - m_min_create_particle_time) * aqua::Rand(1000) / 1000.0f);
 	}
 
-	// シーン切り替え演出の更新
-	m_ChangeSceneEffectSurface.Begin();
-	aqua::Clear(0x00000000);
-	m_ChangeSceneEffectSprite.Draw();
-	m_ChangeSceneEffectSurface.End();
-	DxLib::GraphFilter(m_ChangeSceneEffectSurface.GetTexture().GetResourceHandle(), DX_GRAPH_FILTER_TWO_COLOR,
-		(int)(max(1.0f - m_ChangeSceneInTimer.GetTime() / m_change_scene_time, m_ChangeSceneOutTimer.GetTime() / m_ChangeSceneOutTimer.GetLimit()) * 255.0f),
-		0xff000000,
-		255,
-		0xff000000,
-		0);
-
-	// グロー効果付与の描画
-	m_pGlowScreen->Begin();
-	{
-		m_CancelButtonSprite.color = 0xff000000;
-		m_CancelButtonSprite.blend_mode = aqua::ALPHABLEND::SUB;
-		m_CancelButtonSprite.Draw();
-
-		m_CancelButtonLitSprite.Draw();
-		m_CancelButtonFrameSprite.Draw();
-		m_CancelButtonEffectSprite.Draw();
-		for (int i = 0; i < m_typing_num; ++i)
-		{
-			m_SuccessTextSprite[i].color = 0xff705020;
-			m_SuccessTextSprite[i].Draw();
-		}
-		m_SuccessBarSprite.color = 0xff705020;
-		m_SuccessBarSprite.Draw();
-
-		m_pEffectManager->DrawEffects();
-		m_ChangeSceneEffectSprite_Dest.Draw();
-	}
-	m_pGlowScreen->End();
-
 	// 背景色の更新
-	m_pCommonData->SetBGParamR(0.10f);
-	m_pCommonData->SetBGParamG(0.15f);
-	m_pCommonData->SetBGParamB(0.20f);
+	m_pBackGround->paramR = 0.10f;
+	m_pBackGround->paramG = 0.15f;
+	m_pBackGround->paramB = 0.20f;
 }
 
 void CGameMain::Draw()
 {
-	IGameObject::Draw();
+	// フィールド
+	m_pField->Draw();
 
+	// 戻るボタン
 	m_CancelButtonSprite.color = 0xffffffff;
-	m_CancelButtonSprite.blend_mode = aqua::ALPHABLEND::ALPHA;
 	m_CancelButtonSprite.Draw();
 	m_CancelButtonLitSprite.Draw();
 	m_CancelButtonFrameSprite.Draw();
 	m_CancelButtonEffectSprite.Draw();
 
+	// 成功演出
 	for (int i = 0; i < m_typing_num; ++i)
 	{
 		m_SuccessTextSprite[i].color = 0xffffffff;
@@ -297,9 +231,27 @@ void CGameMain::Draw()
 	}
 	m_SuccessBarSprite.color = 0xffffffff;
 	m_SuccessBarSprite.Draw();
+}
 
-	m_pEffectManager->DrawEffects();
-	m_ChangeSceneEffectSprite_Dest.Draw();
+void CGameMain::Draw_Lit()
+{
+	// フィールド
+	m_pField->Draw_Lit();
+
+	// 戻るボタン
+	m_CancelButtonSprite.color = 0xff000000;
+	m_CancelButtonSprite.Draw();
+	m_CancelButtonLitSprite.Draw();
+	m_CancelButtonEffectSprite.Draw();
+
+	// 成功演出
+	for (int i = 0; i < m_typing_num; ++i)
+	{
+		m_SuccessTextSprite[i].color = 0xff705020;
+		m_SuccessTextSprite[i].Draw();
+	}
+	m_SuccessBarSprite.color = 0xff705020;
+	m_SuccessBarSprite.Draw();
 }
 
 void CGameMain::Finalize()
@@ -313,9 +265,6 @@ void CGameMain::Finalize()
 	for (int i = 0; i < m_typing_num; ++i)
 		m_SuccessTextSprite[i].Delete();
 	m_SuccessBarSprite.Delete();
-	m_ChangeSceneEffectSprite.Delete();
-	m_ChangeSceneEffectSurface.Delete();
-	m_ChangeSceneEffectSprite_Dest.Delete();
 }
 
 void CGameMain::SaveClearLevel()
@@ -323,7 +272,7 @@ void CGameMain::SaveClearLevel()
 	// クリア済みレベルを取得
 	int cleared_level = 0;
 	{
-		std::ifstream ifs(m_pCommonData->GetSaveDataFileName());
+		std::ifstream ifs(m_save_data_file);
 		if (ifs)
 			ifs >> cleared_level;
 
@@ -331,7 +280,7 @@ void CGameMain::SaveClearLevel()
 	}
 
 	// クリア済みレベルと選択レベルを比較し、高いほうを記録
-	std::ofstream ofs(m_pCommonData->GetSaveDataFileName());
+	std::ofstream ofs(m_save_data_file);
 	ofs.clear();
-	ofs << max(m_pCommonData->GetSelectedLevel(), cleared_level) << std::endl;
+	ofs << max(m_pCommonData->selectedLevel, cleared_level) << std::endl;
 }
